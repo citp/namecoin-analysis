@@ -6,6 +6,8 @@ from re import finditer, search
 from datetime import datetime
 from time import sleep
 from pickle import dump, HIGHEST_PROTOCOL
+from os import makedirs
+from os.path import join, exists
 
 # 3rd party
 import requests
@@ -17,6 +19,7 @@ from listing import Listing
 REQUEST_URL_PREFIX = "https://dotbit.me/get_domains_for_sale.php"
 # This regex looks ugly. Maybe fix it later.
 REGEX = """<td>([a-zA-Z0-9-_]+\.bit)</td><td class=sp onclick='buyPrivateDomain\("[a-zA-Z0-9-_]+","Bitcoins","[0-9.-]+"\);'>([0-9-.]+)</td><td onclick='buyPrivateDomain\("[a-zA-Z0-9-_]+","Namecoins","[0-9.-]+"\);' class=sp>([0-9-]+)</td><td onclick='buyPrivateDomain\("[a-zA-Z0-9-_]+","Litecoins","[0-9.-]+"\);' class=sp>([0-9.-]+)</td>\s+<td onclick='buyPrivateDomain\("[a-zA-Z0-9-_]+","Peercoins","[0-9.-]+"\);' class=sp>([0-9.-]+)</td>\s*<td onclick='buyPrivateDomain\("[a-zA-Z0-9-_]+","Primecoins","[0-9.-]+"\);' class=sp>([0-9.-]+)</td>"""
+OUTPUT_DIR = "scrape_data"
 
 listings = []
 i = 1
@@ -43,7 +46,9 @@ while True:
     i += 1
     sleep(0.5)
     
+if not os.path.exists(OUTPUT_DIR):
+    os.makedirs(OUTPUT_DIR)
 filename = datetime.now().strftime("%Y-%m-%d-%H_%M.pickle")
-with open(filename, "wb") as output_file:
+with open(join(OUTPUT_DIR, filename), "wb") as output_file:
     dump(listings, output_file, protocol = HIGHEST_PROTOCOL)
 
