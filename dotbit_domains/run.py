@@ -46,8 +46,8 @@ while True:
     i += 1
     sleep(0.5)
     
-if not os.path.exists(OUTPUT_DIR):
-    os.makedirs(OUTPUT_DIR)
+if not exists(OUTPUT_DIR):
+    makedirs(OUTPUT_DIR)
 filename = datetime.now().strftime("%Y-%m-%d-%H_%M.pickle")
 with open(join(OUTPUT_DIR, filename), "wb") as output_file:
     dump(listings, output_file, protocol = HIGHEST_PROTOCOL)
