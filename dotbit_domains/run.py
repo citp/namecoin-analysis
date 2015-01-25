@@ -24,8 +24,6 @@ OUTPUT_DIR = "scrape_data"
 listings = []
 i = 1
 while True:
-    if i % 10 == 0:
-        print("Now fetching page " + str(i))
     params = {"p": i}
     r = requests.get(REQUEST_URL_PREFIX, params = params)
     if r.text is None or search(REGEX, r.text) is None:
