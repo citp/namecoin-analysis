@@ -56,11 +56,13 @@ def iterate_name_updates(store, logger, chain_id):
           JOIN txout out2 ON (txin.txout_id = out2.txout_id)
           WHERE cc.chain_id = ?
           AND out1.txout_scriptPubKey >= ? AND out1.txout_scriptPubKey < ?
-          AND out2.txout_scriptPubKey >= ? AND out2.txout_scriptPubKey < ?
+          AND ((out2.txout_scriptPubKey >= ? AND out2.txout_scriptPubKey < ?)
+          OR (out1.txout_scriptPubKey >= ? AND out1.txout_scriptPubKey < ?))
           ORDER BY cc.block_height, bt.tx_pos, out1.txout_pos""",
                                      (chain_id, store.binin(NAME_SCRIPT_MIN),
                                       store.binin(NAME_SCRIPT_MAX), store.binin(NAME_SCRIPT_MIN),
-                                      store.binin(NAME_SCRIPT_MAX))):
+                                      store.binin(NAME_SCRIPT_MAX), store.binin(NAME_SCRIPT_MIN),
+                                      store.binin('\x52'))):
         height = int(height)
 
         i = script_GetOp(store.binout(script))
