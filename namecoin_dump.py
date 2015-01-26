@@ -33,11 +33,6 @@ BLOCKS_TO_EXPIRE = 12000
 
 def iterate_name_updates(store, logger, chain_id):
 
-    ## tx_pos is now actually the FROM pubkey id
-    ## and txout_pos is now actually the TO pubkey id
-    ## (this is just changed in the SQL querry and uses the 
-    ## old terminology elsewhere 
-
 
 ##"""
 #            SELECT cc.block_height, bt.tx_pos, txout.txout_pos,
