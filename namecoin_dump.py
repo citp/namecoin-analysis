@@ -19,15 +19,10 @@
 
 import sys
 import logging
-import sqlite3
-import pickle
-import datetime
 
 import Abe.DataStore
 import Abe.readconf
 from Abe.deserialize import script_GetOp, opcodes
-
-import matplotlib.pyplot as plt
 
 NAME_NEW         = opcodes.OP_1
 NAME_FIRSTUPDATE = opcodes.OP_2
@@ -36,41 +31,54 @@ NAME_SCRIPT_MIN = '\x51'
 NAME_SCRIPT_MAX = '\x54'
 BLOCKS_TO_EXPIRE = 12000
 
-execfile("common.py")
-
 def iterate_name_updates(store, logger, chain_id):
-    for height, tx_pos, txout_pos, script in store.selectall("""
-        SELECT cc.block_height, bt.tx_pos, txout.txout_pos,
-               txout.txout_scriptPubKey
+
+    ## tx_pos is now actually the FROM pubkey id
+    ## and txout_pos is now actually the TO pubkey id
+    ## (this is just changed in the SQL querry and uses the 
+    ## old terminology elsewhere 
+
+
+##"""
+#            SELECT cc.block_height, bt.tx_pos, txout.txout_pos,
+#            txout.txout_scriptPubKey
+#            FROM chain_candidate cc
+#            JOIN block_tx bt ON (cc.block_id = bt.block_id)
+#            JOIN txout ON (bt.tx_id = txout.tx_id)
+#            WHERE cc.chain_id = ?
+#            AND txout_scriptPubKey >= ? AND txout_scriptPubKey < ?
+#            ORDER BY cc.block_height, bt.tx_pos, txout.txout_pos""" 
+
+
+    for height, from_pubkey_id, to_pubkey_id, script in store.selectall("""
+          SELECT cc.block_height, out2.pubkey_id, out1.pubkey_id,
+            out1.txout_scriptPubKey
           FROM chain_candidate cc
           JOIN block_tx bt ON (cc.block_id = bt.block_id)
-          JOIN txout ON (bt.tx_id = txout.tx_id)
-         WHERE cc.chain_id = ?
-           AND txout_scriptPubKey >= ? AND txout_scriptPubKey < ?
-         ORDER BY cc.block_height, bt.tx_pos, txout.txout_pos""",
+          JOIN txout out1 ON (bt.tx_id = out1.tx_id)
+          JOIN tx ON (tx.tx_id = out1.tx_id)
+          JOIN txin ON (tx.tx_id = txin.tx_id)
+          JOIN txout out2 ON (txin.txout_id = out2.txout_id)
+          WHERE cc.chain_id = ?
+          AND out1.txout_scriptPubKey >= ? AND out1.txout_scriptPubKey < ?
+          ORDER BY cc.block_height, bt.tx_pos, out1.txout_pos""",
                                      (chain_id, store.binin(NAME_SCRIPT_MIN),
                                       store.binin(NAME_SCRIPT_MAX))):
         height = int(height)
-        tx_pos = int(tx_pos)
-        txout_pos = int(txout_pos)
-        tx_type = -1
 
         i = script_GetOp(store.binout(script))
         try:
             name_op = i.next()[0]
             if name_op == NAME_NEW:
-                tx_type = 0
-                name = "N/A"
-                value = "N/A"
+                continue  # no effect on name map
             elif name_op == NAME_FIRSTUPDATE:
-                tx_type = 1
+                
                 is_first = True
-                name = i.next()[1]
+                name = i.next()[1] #
                 newtx_hash = i.next()[1]
                 #rand = i.next()[1]  # XXX documented as optional; is it?
                 value = i.next()[1]
             elif name_op == NAME_UPDATE:
-                tx_type = 2
                 is_first = False
                 name = i.next()[1]
                 value = i.next()[1]
@@ -79,9 +87,9 @@ def iterate_name_updates(store, logger, chain_id):
                 continue
         except StopIteration:
             logger.warning("Strange script at %d:%d:%d",
-                           height, tx_pos, txout_pos)
+                           height, from_pubkey_id, to_pubkey_id)
             continue
-        yield (height, tx_pos, txout_pos, tx_type, name, value)
+        yield (height, from_pubkey_id, to_pubkey_id, is_first, name, value)
 
 def get_expiration_depth(height):
     if height < 24000:
@@ -94,22 +102,22 @@ def dump(store, logger, chain_id):
     from collections import deque
     top = store.get_block_number(chain_id)
     expires = {}
-    expiry_queue = deque()  # XXX unneeded synchronization
+    expiry_queue = deque() # XXX unneeded synchronization
 
     for x in iterate_name_updates(store, logger, chain_id):
-        height, tx_pos, txout_pos, is_first, name, value = x
+        height, from_pubkey_id, to_pubkey_id, is_first, name, value = x
         while expiry_queue and expiry_queue[0]['block_id'] < height:
             e = expiry_queue.popleft()
             dead = e['name']
             if expires[dead] == e['block_id']:
-                print repr((e['block_id'], 'Expired', dead, None))
+                print repr((e['block_id'], 'Expired', dead, None, from_pubkey_id, to_pubkey_id))
         if expires.get(name, height) < height:
             type = 'Resurrected'
         elif is_first:
             type = 'First'
         else:
             type = 'Renewed'
-        print repr((height, type, name, value))
+        print repr((height, type, name, value, from_pubkey_id, to_pubkey_id))
         expiry = height + get_expiration_depth(height)
         expires[name] = expiry
         expiry_queue.append({'block_id': expiry, 'name': name, 'value': value})
@@ -118,9 +126,9 @@ def dump(store, logger, chain_id):
         if expires[e['name']] > e['block_id']:
             pass
         elif e['block_id'] <= top:
-            print repr((e['block_id'], 'Expired', e['name'], None))
+            print repr((e['block_id'], 'Expired', e['name'], None, from_pubkey_id, to_pubkey_id))
         else:
-            print repr((e['block_id'], 'Until', e['name'], e['value']))
+            print repr((e['block_id'], 'Until', e['name'], e['value'], from_pubkey_id, to_pubkey_id))
 
 def main(argv):
     logging.basicConfig(level=logging.DEBUG)
@@ -149,39 +157,7 @@ def main(argv):
             raise Exception("Can not find Namecoin chain in database.")
         args.chain_id = row[0]
 
-    a = datetime.datetime.now()
-
-    nameInfos = []
-    for x in iterate_name_updates(store, logger, args.chain_id):
-        height, tx_pos, txout_pos, tx_type, name, value = x
-        nameInfos.append(NameInfo(height, tx_pos, txout_pos, tx_type, name, value))
-    b = datetime.datetime.now()
-    c = b - a
-    print c.total_seconds()
-    save_object(nameInfos, "python_raw.dat")
-
-    # for nameInfo in load_object("python_raw.dat"):
-    #     print nameInfo.height, nameInfo.tx_type, nameInfo.name
-
-    # con = sqlite3.connect('example.db')
-    # with con:
-    #     cur = con.cursor()
-    #     cur.execute("DROP TABLE IF EXISTS Names")
-    #     cur.execute("CREATE TABLE Names(Id INTEGER PRIMARY KEY, name TEXT)")
-
-    #     for x in iterate_name_updates(store, logger, args.chain_id):
-    #         height, tx_pos, txout_pos, is_first, name, value = x
-    #         if is_first is True:
-    #             # total_registrations += 1
-    #             # xPoints.append(height)
-    #             # yPoints.append(total_registrations)
-    #             # print height, total_registrations
-
-    # plt.plot(xPoints, yPoints)
-    # plt.ylabel('Total Updates')
-    # plt.show()
-
-    # dump(store, logger, args.chain_id)
+    dump(store, logger, args.chain_id)
     return 0
 
 if __name__ == '__main__':
