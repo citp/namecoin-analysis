@@ -11,4 +11,7 @@ class Listing():
                 price = None
             setattr(self, coin_name, price)
 
+    def __repr__(self):
+    	return "({}, {})".format(self.domain, self.date_seen)
+
         
