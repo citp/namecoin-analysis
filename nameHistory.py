@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 import datetime
 import os.path
 import json
+from collections import defaultdict
 
-execfile("common.py")
+from common import (TransactionOutput, NameNew, NameUpdate, NameFirstUpdate,
+                    load_object, save_object, hash160)
 
 def getNumberOfNameTransactions(opList):
     return len(opList)
@@ -35,13 +37,11 @@ def getNumberOfOwnerChanges(opList):
     return ownerChanges
 
 def getCounts(nameDict, nameListFunc):
-    bucketList = {}
+    bucketList = defaultdict(int)
     for name in nameDict:
         bucket = nameListFunc(nameDict[name])
-        if bucket in bucketList:
-            bucketList[bucket] += 1
-        else:
-            bucketList[bucket] = 1
+        bucketList[bucket] += 1
+
     return bucketList
 
 def main(argv):
