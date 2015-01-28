@@ -6,7 +6,9 @@ import pdb
 from socket import gethostbyaddr, inet_pton, AF_INET, AF_INET6, herror
 from pickle import dump
 
-from dns.resolver import Resolver
+from dns.resolver import Resolver, NXDOMAIN, NoNameservers, NoAnswer
+from dns.exception import Timeout
+from dns.name import LabelTooLong
 
 DNS_SERVERS = ["75.127.14.107", "107.170.95.180"]
 
@@ -27,7 +29,13 @@ def test_ips(ips, protocol):
 def resolve_ip(domain):
     resolver = Resolver()
     resolver.nameservers = DNS_SERVERS
-    answer = resolver.query(domain)
+    try:
+        answer = resolver.query(domain)
+    except (NXDOMAIN, NoNameservers, NoAnswer, Timeout, LabelTooLong):
+        return []
+    except UnicodeError:
+        print("Name " + domain + " gives a unicode error")
+        return []
     return [item.address for item in answer.rrset.items]
 
 
@@ -36,21 +44,6 @@ with gzip.open("names.txt.gz", "r") as names_file:
 
 names = filter(lambda name: (name["name"].startswith("d/") and
                              "value" in name), names)
-
-for name in names:
-    try:
-        value_info = json.loads(name["value"])
-    except ValueError:
-        continue
-        
-    if type(value_info) is not dict:
-        continue
-
-    if ("ns" in value_info and 
-        len(value_info["ns"]) > 2 and
-        "ns0.web-sweet-web.net" not in value_info["ns"]):
-        pdb.set_trace()
-pdb.set_trace()
 
 dont_resolve = []
 do_resolve = []
@@ -74,6 +67,10 @@ for name in names:
         if type(ips) is str:
             ips = [ips]
         valid_ips += test_ips(ips, AF_INET6)
+    if "ns" in value_info:
+        domain_name = name["name"].replace("d/", "", 1) + ".bit"
+        resolved_ips = resolve_ip(domain_name)
+        valid_ips += resolved_ips
 
     if len(valid_ips) == 0:
         continue
