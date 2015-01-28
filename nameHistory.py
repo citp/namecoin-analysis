@@ -9,12 +9,28 @@ import json
 
 execfile("common.py")
 
+def getNumberOfChangeUpdates(opList):
+    changeUpdates = 0
+    lastValue = ""
+    for op in opList:
+        if op.tx_type() == "new":
+            changeUpdates = 0
+        elif op.tx_type() == "firstUpdate":
+            lastValue = op.value
+        elif op.tx_type() == "update":
+            if op.value != lastValue:
+                changeUpdates += 1
+                lastValue = op.value
+    return changeUpdates
+
+
+
 def main(argv):
 
     nameDict = {}
     nameNewDict = {}
 
-    if os.path.isfile("python_raw.dat"):
+    if not os.path.isfile("nameDict.dat"):
         a = datetime.datetime.now()
         dataList = load_object("python_raw.dat")
         b = datetime.datetime.now()
@@ -52,8 +68,36 @@ def main(argv):
         save_object(nameDict, "nameDict.dat")
         save_object(nameNewDict.values(), "unusedNameNew.dat")
     else:
-        nameDict = load_object("python_raw.dat")
-        nameNewDict = load_object("unusedNameNew.dat")
+        nameDict = load_object("nameDict.dat")
+        # nameNewDict = load_object("unusedNameNew.dat")
+
+    updateCount = {}
+    changeUpdateCount = {}
+
+    for name in nameDict:
+        length = len(nameDict[name])
+        changeUpdates = getNumberOfChangeUpdates(nameDict[name])
+
+        if length in updateCount:
+            updateCount[length] += 1
+        else:
+            updateCount[length] = 1
+
+        if changeUpdates > 8:
+            print name
+
+        if changeUpdates in changeUpdateCount:
+            changeUpdateCount[changeUpdates] += 1
+        else:
+            changeUpdateCount[changeUpdates] = 1
+
+    print "Updates"
+    for length in updateCount:
+        print length, updateCount[length]
+
+    print "Change Updates"
+    for length in changeUpdateCount:
+        print length, changeUpdateCount[length]
 
     
 if __name__ == '__main__':

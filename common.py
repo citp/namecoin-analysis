@@ -62,6 +62,3 @@ def ripemd160(data):
 def hash160(data):
     """A standard compound hash."""
     return ripemd160(hashlib.sha256(data).digest()).digest()
-
-# test = NameNew(13,153, 532, "fsdfsfds")
-# print test
