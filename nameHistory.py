@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import datetime
 import os.path
 import json
-<<<<<<< HEAD
 import operator
 import collections
 import csv
