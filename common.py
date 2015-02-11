@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import cPickle as pickle
+import pickle
 import hashlib
 
 
@@ -36,9 +36,10 @@ class NameUpdate(TransactionOutput):
         return "update"
 
 class NameFirstUpdate(NameUpdate):
-    def __init__(self, height, tx_pos, txout_pos, from_pub_id, to_pub_id, name, tx_rand, value):
+    def __init__(self, height, tx_pos, txout_pos, from_pub_id, to_pub_id, name, tx_rand, value, tx_hash):
         super(NameFirstUpdate, self).__init__(height, tx_pos, txout_pos, from_pub_id, to_pub_id, name, value)
         self.tx_rand = tx_rand
+        self.tx_hash = tx_hash
 
     def __str__(self):
         return "NameFirstUpdate({}, {}, {}, {}, {}, {})".format(self.height, self.tx_pos, self.from_pub_id, self.to_pub_id, self.name, self.value)
@@ -50,7 +51,7 @@ class NameFirstUpdate(NameUpdate):
 
 def load_object(filename):
     with open(filename, 'rb') as input:
-        return pickle.load(input)
+        return pickle.load(input, encoding='ISO-8859-1')
 
 def save_object(obj, filename):
     with open(filename, 'wb') as output:
