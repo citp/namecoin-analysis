@@ -48,7 +48,6 @@ def getNamespace(opList):
    return opList[-1].name.split('/')[0] 
 
 def getCounts(nameDict, nameListFunc):
-<<<<<<< HEAD
     bucketList = collections.defaultdict(int)
     for name in nameDict:
         bucketList[nameListFunc(nameDict[name])] += 1
