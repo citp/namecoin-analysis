@@ -3,7 +3,7 @@
 import gzip
 import json
 
-with gzip.open("names.txt.gz", "r") as names_file:
+with gzip.open("../reverse_dns/names.txt.gz", "r") as names_file:
     names = json.loads(names_file.read().decode("utf-8"))
 
 names = filter(lambda name: (name["name"].startswith("d/") and
