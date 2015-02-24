@@ -15,3 +15,13 @@ def load_name_length():
 def sample_from_histogram(histogram, num_samples):
     elements = histogram.elements()
     return [choice(elements) for _ in range(num_samples)]
+
+def namelength_cost(length, base_price = 10):
+    if length <= 3:
+        return 5 * base_price
+    elif length <= 6:
+        return 2 * base_price
+    elif length <= 14:
+        return 0.5 * base_price
+    else:
+        return 0.02
