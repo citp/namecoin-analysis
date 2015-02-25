@@ -1,2 +1,41 @@
 \section{Methods}
 \label{sec:methods}
+
+\subsection{Detecting Squatters}
+There a number of users in the Namecoin system who have bought up massive numbers of names for the purpose of transferring or selling them, referred to in this paper, as well as the Namecoin community as squatters. A very large percentage of the name transactions in the Namecoin blockchain is made up of squatters. In this section we attempt to identify the occurrence of squatting in the blockchain. Later we will attempt to quantify the success of these squatters in selling or transferring their names to regular users.
+
+Names are owned by individual addresses rather than by identities and it is common practice to keep each purchased name under a different address. Thus it is difficult to assess how many names a single person owns. However many squatters are easily identified through the values they set on names they own. Since there is no built-in mechanism for the marketing and sale of names built into Namecoin, squatters use the values of names they own to display contact information. This information generally comes in the form of either contact information stored directly in the value of a name, or contact information stored on the IP address to which the name resolves.
+
+This behavior provides us with an easy facility to track the presence of squatters since a squatter's contact information is generally constant among all the names he owns. Thus evaluating the frequency of values on the blockchain at any given time, we can measure the rate of squatters compared to regular users.
+There is no clear method for deciding exactly of often a value has to occur in order to assume a squatter has been detected. However even the coarsest grained approach displays the massive amount of squatting on the blockchain. Simply observing the 196023 currently active names, reveals that there are only 34361 unique values.
+
+In order to provide a more comprehensive look at commonly occurring values in the blockchain over time. We arbitrarily split values into classes based on how often they occur and graph them together. Values that occur more than 1000 times are clearly owned by squatters who very actively gather domain names. Values that occur less than 5 times can be assumed to be owned by individuals. Values that occur somewhere between 5 and 1000 times are probably also squatters. Interestingly this last group of squatters makes up a much smaller percentage of the names registered than the first group, revealing that a small group of extremely active squatters does owns most of the active domains rather than a large number of moderately active squatters.
+
+We use this same standard for identifying squatters throughout the rest of the paper.
+
+\subsection{Detecting Name Sales and Transfers}
+
+In order to understand and evaluate the market dynamics of Namecoin, we deploy multiple heuristics for detecting the sale and transfer of domains. Our basic scenario is that Alice owns the name 'd/awesome' and Bob would like to purchase it from her. We explore various ways this sale can occur and how these sales can be detected.
+
+\subsubsection{Atomic Transactions}
+
+The safest way to buy and sell Namecoin names is through the use of atomic transactions. In an atomic transaction, Alice and Bob make their exchange in a single transaction. In the simplest form of Atomic Name Transfer, Bob creates a transaction which transfers his coins to Alice and transfers 'd/awesome' to him. He then sends this transaction to Alice who verifies it, signs, and broadcasts the transaction to the blockchain. This transaction provides total safety to both Alice and Bob since either both the name and coins will be exchanged or nothing will. Although there is nothing inherently different looking about this transaction, there are a few possible techniques to detect them by implementation quirks.
+
+The Namecoin client is a fairly underdeveloped piece of software and thus there is no built-in method of performing atomic transactions. In order to accomplish this technique, the Namecoin RPC client must be used from the command line. In order to simplify this task, a Namecoin developer created ANTPY, a piece of software to automate the creation of atomic transactions. This software has the quirk that the buyer?s payment goes to the address that the seller held the name in. To find these transactions we queried the blockchain for transactions with a NAME\_FIRSTUPDATE or NAME\_UPDATE input from the same address as a non name output. We then further reduced this set by eliminating transactions where the name stayed at the same address. This query produced 13 results.
+
+Another more implementation agnostic method for detecting atomic name transfers is to find transactions that clearly use change addresses. This occurs when there are two non-name outputs in a transaction that has a name input. In this case the buyer did not want to pay all of his input to the seller and thus kept some for himself. This leaves the transaction with 3 outputs. Under normal circumstances, name transactions will only have two outputs, a name output and a change address. Thus every transaction with three outputs is very likely an atomic name transfer. Querying for this type of transaction revealed 6 results, 5 of which had been detected by the previous heuristic.
+
+Although these queries showed some level of success in detecting atomic name transfers, there is no solution for the general case. If the buyer doesn?t want any change from a purchase and the seller gives the buyer a new address to send payment to, the transaction is indistinguishable from a regular non-transferring name update. Thus this technique is lacking. Additionally, many name transfers may occur without the protection of anonymity.
+
+\subsubsection{Non Atomic Transactions}
+
+The detection of non-atomic name transactions is much more difficult than that of atomic transactions. Whereas atomic transactions can be recognized simply from the contents of a transaction, non-atomic transactions are not recognizable.  Since the Namecoin client defaults to sending names to new addresses on update, there is no way to look at an update and tell whether or not a name is transferring between owners.
+
+In order to detect non-atomic transactions we must expand our view to the prior value of a name being updated. Certainly if the value does not change then the transaction is simply renewing the name, not transferring it. However considering all other transactions to be name transfers is far too greedy of a heuristic. Users freely update the values of names whenever information in them becomes outdated and under the started heuristic this would all appear to be transfers. Thus it appears that there is not clear way to detect all name transfers.
+
+Although we have eliminated the possibility of detecting non-atomic name transfers generally, there is an important subclass of these transactions which can still be detected, transfers from squatters to regular users. In the previous section we discussed our detection of squatters in the blockchain which produces a list of values which with a high probability belong to squatters. Detecting transfers from squatters by finding names that change from one of these values gives us an almost working strategy to detect transfers.
+
+The last problem to solve is that sometimes squatters update the value of their names, and thus a change from a squatter value may not represent the transfer of a name. To avoid picking up these updates as name transfers we restrict ourselves to selecting transactions that update the value of a name from a squatter value to a non-squatter value. Although this heuristic certainly is not perfect, we believe that it has a fairly high success rate in revealing overall trends in name transfers.
+
+\textbf{}
+	
