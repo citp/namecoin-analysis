@@ -12,6 +12,12 @@ For our analysis, we look into an update fee of 0.1 NMC. In this scenario, every
     Another commonly suggested solution is to vary the registration cost based on the length of the name. Shorter names are easier to remember, so the idea is they are generally worth more in practice and should cost more when they are registered. There have been various schemes suggested for the specifics on how the price should scale with name length, most of which resulting in exponentially decreasing costs for longer names. One issue with this approach is that the implicit assumption of this model, that shorter names are more valuable, may or may not actually reflect reality. Our results show that in the d/ namespace, more shorter names are taken, but this doesn't necessarily mean that they are more valuable. We speculate that a name like amazon.bit is probably more valuable than xyz.bit, and this wouldn't be reflected with this kind of pricing scheme.  This method does provide a good deterrent against squatters who are trying to claim many short names, but is rather ineffective against a squatter who is either trying to claim specific, valuable domain names, or hoard large quantities of longer domain names. 
     There exist many pricing protocols, but we have chosen to analyze the strategy outlined on the Namecoin Pricing wiki in more depth. According to this system, the prices depended on multipliers of an arbitrary price for different name lengths. 
 
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.95\textwidth]{nameLength.png}
+  \caption{Length of Registered Names}
+  \label{fig:nameLength}
+\end{figure*}
 
 \begin{table}[t]
   \centering
