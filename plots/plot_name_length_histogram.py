@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 
 import matplotlib.pyplot as plt
+from matplotlib import rc, rcParams
 from collections import Counter
+
+# rc('font', family='sans-serif') 
+rc('font', serif='Helvetica Neue') 
+rc('text', usetex='true') 
+rcParams.update({'font.size': 16})
+rcParams.update({'figure.autolayout': True})
 
 histogram = Counter()
 with open("plotNameLength.txt", "r") as histogram_file:
@@ -14,7 +21,7 @@ with open("plotNameLength.txt", "r") as histogram_file:
 
 # plt.hist(list(histogram.elements()), bins = len(histogram.items()))
 plt.hist(list(histogram.elements()), bins = range(0, 40))
-plt.title("Frequency of Name Length")
+plt.title("Frequency of Name Length", y = 1.02)
 plt.xlabel("Name Length")
 plt.ylabel("Frequency")
 plt.savefig("name_length_histogram.eps")
