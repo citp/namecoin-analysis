@@ -2,49 +2,35 @@
 
 import sys
 import logging
+
 import matplotlib.pyplot as plt
-import datetime
+from matplotlib.ticker import ScalarFormatter
+from matplotlib.dates import YearLocator, MonthLocator, DateFormatter, date2num, AutoDateLocator
+import numpy as np
 import os.path
-import json
 import operator
 import collections
-import csv
-import tldextract
 from IPy import IP
 import re
+import cProfile
+import time
+import json
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
+import http
+import socket
+import os
+import random
+from nltk.corpus import wordnet
+from common import *
 
-from common import NameNew, NameUpdate, NameFirstUpdate, load_object, save_object, hash160
+socket.setdefaulttimeout(10)
 
-def getNumberOfNameTransactions(opList):
-    return len(opList)
-
-def getNumberOfValueChanges(opList):
-    changeUpdates = 0
-    lastValue = ""
-    for op in opList:
-        if op.tx_type() == "firstUpdate":
-            lastValue = op.value
-        elif op.tx_type() == "update":
-            if op.value != lastValue:
-                changeUpdates += 1
-            lastValue = op.value
-    return changeUpdates
-
-def getNumberOfOwnerChanges(opList):
-    ownerChanges = 0
-    lastOwner = ""
-    for op in opList:
-        if op.tx_type() != "new":
-            if op.to_pub_id == lastOwner:
-                ownerChanges += 1
-        lastOwner = op.to_pub_id
-    return ownerChanges
-
-def getLatestValue(opList):
-    return opList[-1].value
-
-def getNamespace(opList):
-   return opList[-1].name.split('/')[0] 
+def getMaxHeight(nameDict):
+    maxHeight = 0
+    for name in nameDict:
+        maxHeight = max(maxHeight, nameDict[name].latestOp().height)
+    return maxHeight
 
 def getCounts(nameDict, nameListFunc):
     bucketList = collections.defaultdict(int)
@@ -52,234 +38,288 @@ def getCounts(nameDict, nameListFunc):
         bucketList[nameListFunc(nameDict[name])] += 1
     return bucketList
 
-def currentValueList(nameDict):
-    return [record[-1].value for record in nameDict]
-
-def nameHasPrefix(prefix):
-    def checkPrefix(opList):
-        return opList[-1].name.startswith(prefix)
-    return checkPrefix
-
-def nameIsValid(opList):
-    currentBlockNum = 208455
-    return opList[-1].height > currentBlockNum - 36000
-
-def latestValueIsJson(opList):
-    myjson = opList[-1].value
-    try:
-        json_object = json.loads(myjson)
-    except ValueError:
-        return False
-    return True
-
-def is_valid_hostname(hostname):
-    if len(hostname) > 255:
-        return False
-    if hostname[-1:] == ".":
-        hostname = hostname[:-1]
-    allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
-    return all(allowed.match(x) for x in hostname.split("."))
-
 def isValidIp(ip):
     allowed = re.compile("([0-9]{1,3}\.){3}[0-9]{1,3}")
     return allowed.match(ip)
 
-def latestValueIsValidDNS(opList):
+def dnsFields(op):
     serverFields = ["service", "ip", "ip6", "tor", "ip2", "freenet", "alias", "translate", "ns", "delegate", "import", "map"]
     dataFields = ["email", "loc", "info", "fingerprint", "tls", "ds"]
-    myjson = opList[-1].value
-    try:
-        json_object = json.loads(myjson)
-        if not isinstance(json_object, dict):
-            return False
-
+    json_object = op.jsonDict()
+    if json_object:
         serverKeys = [key for key in list(set(json_object.keys()) & set(serverFields)) if len(json_object[key]) > 0]
-        if "translate" in serverKeys:
-            if isinstance(json_object["translate"], str):
-                if not is_valid_hostname(json_object["translate"]):
-                    serverKeys.remove("translate")
-                if json_object["translate"].startswith("BM-"):
-                    serverKeys.remove("translate")
-        if "ns" in serverKeys:
-            if not isinstance(json_object["ns"], list):
-                serverKeys.remove("ns")
-            else:
-                validList = [ns for ns in json_object["ns"] if isValidIp(ns) or is_valid_hostname(ns)]
-                if not validList:
-                    serverKeys.remove("ns")
-
-        if not serverKeys:
-            return False
-        if "map" in json_object:
-            if not isinstance(json_object["map"], dict):
-                return False
-            if "" in json_object["map"]:
-                if isinstance(json_object["map"][""], str):
-                    if isPrivateIP(json_object["map"][""]):
-                        return False
-        if "ip" in json_object:
-            if isinstance(json_object["ip"], str):
-                if isPrivateIP(json_object["ip"]):
-                    return False
-
-    except ValueError:
+        return filterValidDNSEntries({key:json_object[key] for key in json_object if key in serverKeys})
+    else:
         return False
-    return True
 
-def latestValueServerDNS(opList):
+def latestValueDNSFields(record):
     serverFields = ["service", "ip", "ip6", "tor", "ip2", "freenet", "alias", "translate", "ns", "delegate", "import", "map"]
     dataFields = ["email", "loc", "info", "fingerprint", "tls", "ds"]
-    myjson = opList[-1].value
-    json_object = json.loads(myjson)
-    return  [str(key, json_object[key]) for key in list(set(json_object.keys()) & set(serverFields)) if len(json_object[key]) > 0].join(", ")
+    json_object = record.latestValueJsonDict()
+    if json_object:
+        serverKeys = [key for key in list(set(json_object.keys()) & set(serverFields)) if len(json_object[key]) > 0]
+        return filterValidDNSEntries({key:json_object[key] for key in json_object if key in serverKeys})
+    else:
+        return False
+
+def filterValidDNSEntries(json_object):
+    fieldDict = {key: json_object[key] for key in json_object}
+    if "map" in fieldDict:
+        if isinstance(fieldDict["map"], dict):
+            subdomains = list(fieldDict["map"].keys())
+            for subdomain in subdomains:
+                if isinstance(fieldDict["map"][subdomain], str):
+                    if isPrivateIP(fieldDict["map"][subdomain]):
+                        del fieldDict["map"][subdomain]
+                elif isinstance(fieldDict["map"][subdomain], dict) :
+                    fieldDict["map"][subdomain] = filterValidDNSEntries(fieldDict["map"][subdomain])
+                    if not fieldDict["map"][subdomain]:
+                        del fieldDict["map"][subdomain]
+            if not fieldDict["map"]:
+                del fieldDict["map"]
+        else:
+            del fieldDict["map"]
+
+    if "ip" in fieldDict:
+        if isinstance(fieldDict["ip"], str):
+            if isPrivateIP(fieldDict["ip"]):
+                del fieldDict["ip"]
+        elif isinstance(fieldDict["ip"], list):
+            fieldDict["ip"] = [ip for ip in fieldDict["ip"] if not isPrivateIP(ip)]
+            if not fieldDict["ip"]:
+                del fieldDict["ip"]
+        else:
+            del fieldDict["ip"]
+
+    if "ns" in fieldDict:
+        if isinstance(fieldDict["ns"], list):
+            fieldDict["ns"] = [ns for ns in fieldDict["ns"] if isValidIp(ns) or is_valid_hostname(ns)]
+            if not fieldDict["ns"]:
+                del fieldDict["ns"]
+        else:
+            del fieldDict["ns"]
+
+    return fieldDict
 
 def isPrivateIP(ipAddressString):
-    ipAddress = IP(ipAddressString)
-    ipType = ipAddress.iptype()
-    return ipType == "PRIVATE" or ipType == "LOOPBACK"
-    
-def getDictSubset(nameDict, conditionFunc):
-    return { key:value for key, value in nameDict.items() if conditionFunc(value) }
+    try:
+        ipAddress = IP(ipAddressString)
+        ipType = ipAddress.iptype()
+        return ipType == "PRIVATE" or ipType == "LOOPBACK"
+    except:
+        return False
 
-def getTopValues(valueCounts, threshold):
-    for w in sorted(valueCounts, key=valueCounts.get, reverse=True):
-        yield w, valueCounts[w]
-        if valueCounts[w] < threshold:
-            break
+def getFullDNSRecord(valueDict, nameDict):
+    if "delegate" in valueDict and valueDict["delegate"] in nameDict:
+        delegateJSON = nameDict[valueDict["delegate"]].latestValueJsonDict()
+        if delegateJSON:
+            valueDict = getFullDNSRecord(delegateJSON)
 
-def getAggregateValues(valueCounts):
-    squatterEmails = ["nmc.name.for.sale@gmail.com", "namecoin.domains@gmail.com", "Virtcoin@gmail.com", "info2014@cassini.tv",
-                     "mybitname@gmail.com", "But234s@yandex.com", "info2015@cassini.tv", "bitdomainsell@gmail.com", "virtcoin@gmail.com",
-                     "rent@emojibit.com", "nabil2442@gmail.com", "mybitname@gmail.com", "hupperdehup@gmail.com", "domains.bit@gmail.com",
-                     "salenamecoin@gmail.com", "stan14142000@yahoo.ca", "dotbitgod@gmail.com", "yd567@yadex.com", "BitAssets@163.com",
-                     "frostpako@centrum.cz", "daniel_r_plante@hotmail.com", "piramatizomai@gmail.com", "mailmeifyouwanttobuythisname@mail.ru",
-                     "bitdomains@yandex.com", "18058280610@163.com"]
-    valueCountsAggregate = collections.defaultdict(int)
-    for value in valueCounts:
-        foundAggregate = False
-        if "BM-2c" in value:
-            valueCountsAggregate["Aggregate-BitMessage"] += valueCounts[value]
-            foundAggregate = True
+    if "import" in valueDict:
+        if isinstance(valueDict["import"], str) and valueDict["import"] in nameDict:
+            importJSON = nameDict[nameImport].latestValueJsonDict()
+            if importJSON:
+                valueDict.update(getFullDNSRecord(importJSON))
+        elif isinstance(nameImport, list):
+            for importItem in nameImport:
+                if importItem in nameDict:
+                    importJSON = nameDict[nameImport].latestValueJsonDict()
+                    if importJSON:
+                        valueDict.update(getFullDNSRecord(importJSON))
+        del valueDict["import"]                                                                                                        
+
+def topValuesAtHeight(nameDict, height):
+    ops = [json.dumps(dnsFields(nameDict[name].opAtHeight(height))) for name in nameDict if nameDict[name].opAtHeight(height)]
+    counter = collections.Counter(ops)
+    for value, count in counter.most_common():
+        print(count, value)
+    return
+
+def possibleResolvableNames(nameDict):
+    validNames = getDictSubset(nameDict, lambda record: record.isValidAtHeight(getMaxHeight(nameDict)))
+    validBitNames = getDictSubset(validNames, lambda record: record.namespace() == "d")
+    jsonValidBitNames = getDictSubset(validBitNames, lambda record: record.latestValueJson())
+    jsonValidBitNamesWithRealInfo = getDictSubset(jsonValidBitNames, latestValueDNSFields)
+
+    dnsFieldsDict = {name:latestValueDNSFields(nameDict[name]) for name in jsonValidBitNamesWithRealInfo}
+
+    dnsFieldsDict = getDictSubset(dnsFieldsDict, lambda fieldDict: not (len(fieldDict) == 1 and "translate" in fieldDict and fieldDict["translate"].startswith("BM-")))
+    dnsFieldsDict = getDictSubset(dnsFieldsDict, filterValidDNSEntries)
+
+
+
+    dnsFields = [dnsFieldsDict[key] for key in dnsFieldsDict]
+    counter = collections.Counter([json.dumps(fields) for fields in dnsFields])
+    for value, count in counter.most_common():
+        print(count, value)
+    return
+
+    byValueDict = collections.defaultdict(list)
+    for name in dnsFieldsDict:
+        byValueDict[json.dumps(latestValueDNSFields(nameDict[name]))].append(nameDict[name])
+
+    names_to_check = [byValueDict[value][0] for value in byValueDict]
+    domains_to_check = [domain.domainName() for domain in names_to_check]
+    # print("Checking domains", len(names_to_check))
+    # for domain in names_to_check:
+    #     print(domain.name(), domain.latestValue())
+
+    # ping = Pinger()
+    # ping.thread_count = 16
+    # ping.hosts = domains_to_check
+    # reachable_domains = ping.start()
+
+    # reachable_domains = load_object("reachable_domains.dat")
+
+    # unreachable_names = [nameDict["d/" + host[:-4]] for host in reachable_domains['dead']]
+    # reachable_names = [nameDict["d/" + host[:-4]] for host in reachable_domains['alive']]
+
+    # print ("Unreachable Names")
+    # for nameRecord in unreachable_names:
+    #     print(nameRecord.name(), nameRecord.latestValue())
+
+    # print ("\n\nReachable Names")
+    # for nameRecord in reachable_names:
+    #     print(nameRecord.name(), nameRecord.latestValue())
+
+    # domainsToCurl = {}
+    # for name in reachable_names:
+    #     for value in byValueDict:
+    #         if name in byValueDict[value]:
+    #             domainsToCurl[value] = byValueDict[value]
+
+    # i = 0
+    # print("len(domainsToCurl) =", len(domainsToCurl))
+
+    # a = 0
+    # b = 0
+    # c = 0
+    # d = 0
+
+    # subdirs = [x[0] for x in os.walk("front_pages2/")]
+    # foldersToDelete = []                          
+    # deletionDict = collections.defaultdict(set)
+    # for subdir in subdirs:
+    #     files = next(os.walk(subdir))[2] 
+    #     d += 1                                                                            
+    #     if (len(files) > 0):
+    #         c += 1
+    #         for aFile in files:
+    #             if aFile.endswith(".bit.html"):
+    #                 b += 1
+    #                 name = 'd/' + aFile[:-9]
+    #                 for value in domainsToCurl:
+    #                     domainWithName = [record for record in domainsToCurl[value] if record.name() == name]
+    #                     if domainWithName:
+    #                         domainsToCurl[value].remove(domainWithName[0])
+    #                         deletionDict[subdir].add(value)
+    #                         a += 1
+    # domainsToCurl = {domain:domainsToCurl[domain] for domain in domainsToCurl if domainsToCurl[domain]}
+
+    # for folder in deletionDict:
+    #     print(folder, len(deletionDict[folder]))
+
+    # print(len(domainsToCurl))
+    # print("Deleted", str(a))
+    # print("Total files", str(b))
+    # print(str(c))
+    # print(str(d))
+    # return
+
+    # i = d - 1
+    # for value in domainsToCurl:
+    #     if value in deletionDict:
+    #         folder = deletionDict[value].pop()
+    #     else:
+    #         folder = "front_pages2/" + str(i)
+    #     for nameRecord in domainsToCurl[value]:
+    #         if not os.path.exists(folder):
+    #             os.makedirs(folder)
+    #             i += 1
+    #         downloadDomain(nameRecord.domainName(), folder)
         
-        for email in squatterEmails:
-            if email in value:
-                valueCountsAggregate["Aggregate-Squatter"] += valueCounts[value]
-                foundAggregate = True
 
-        if not foundAggregate:
-            valueCountsAggregate[value] = valueCounts[value]
-    return valueCountsAggregate
+    # print("total domains", len(dnsFieldsDict))
+    # print("domains to curl", len(domainsToCurl))
+    # print(reachable_domains['alive'])
+    save_object(reachable_domains, "reachable_domains.dat")
 
-def getPurchasesFromRegistrar(nameDict):
-    registrarValues = {"dotbit" : 
-    ['{ \"info\": { \"registrar\": \"dotbit.me\", \"registrar-email\": \"admin@dotbit.me\" }, \"ip\": \"178.63.16.21 \", \"map\": { \"*\": { \"ip\": \"178.63.16.21\" } } }', 
-    '{ \"info\": { \"registrar\": \"dotbit.me\", \"registrar-email\": \"admin@dotbit.me\" }, \"ip\": \"144.76.12.6\", \"map\": { \"*\": { \"ip\": \"144.76.12.6\" } } }'],
-    "domaincoin" : ["{\"ns\": [\"ns1.domaincoin.net\", \"ns2.domaincoin.net\"]}"],
-    "bitres" : ["{\"ip\":\"83.160.102.54\",\"ip6\":\"2001:980:608c:1:215:5dff:fe00:a301\",\"map\":{\"*\":{\"ip\":\"83.160.102.54\",\"ip6\":\"2001:980:608c:1:215:5dff:fe00:a301\"}},\"website\":\"http://bitres.domyn.com\",\"email\":\"bitres@domyn.com\",\"bitmessage\":\"BM-2cVNwE6TYj23XNjxNw2a3kcCEQYoe3uPg3\",\"namecoin\":\"N3dbLhnUoEEHtGHokRwwfrA92PBJXZvaCP\",\"about\":\"bit domain reservation\"}"],
-    "bitzinc" : ["{\"info\":\"Want this domain? Contact dotbit@bitzinc.com\",\"ip\":\"92.222.26.81\",\"ip6\":\"2001:41d0:52:a00:0:0:0:a16\",\"map\":{\"www\":{\"ip\":\"92.222.26.81\",\"ip6\":\"2001:41d0:52:a00:0:0:0:a16\"}}}"],
-    "dot-bit" : ["{\"info\":{\"registrar\":\"http://register.dot-bit.org\"},\"ns\":[\"ns0.web-sweet-web.net\",\"ns1.web-sweet-web.net\"],\"map\":{\"\":{\"ns\":[\"ns0.web-sweet-web.net\",\"ns1.web-sweet-web.net\"]}}}"],
-    "jay_dee" : ["\"ns\":[\"If you are interested in this domain please contact Jay Dee at namecoin.domains@gmail.com for more details.\"]}"],
-    "bitassets" : ["{info:make an offer if you intrest,email:BitAssets@163.com}"],
-    "daniel_r" : ["{\"info\": {\"email\": \"daniel_r_plante@hotmail.com\"} }"],
-    "devin" : ["{\"name\":\"Devin\",\"email\":\"newporthighlander@gmail.com\"}"],
-    "virtcoin" : ["Contact Virtcoin@gmail.com if interested in purchasing."],
-    "cex" : ["{\"info\": \"mybitname@gmail.com see more here http://goo.gl/B5y1em\"}"],
-    "nmcreg" : ["{\"email\":\"nmc.reg@gmail.com\",\"description\":\"name for sale\"}"],
-    "hupperdehup" : ["{\"email\":\"hupperdehup@gmail.com\",\"bitmessage\":\"This domain is for sale.\"}"]
-    }
+def downloadDomain(domainName, folder):
+    try:
+        opened = urlopen('http://' + domainName)
+    except HTTPError as e:
+        print('Error code: ', e.code, 'for', domainName)
+    except URLError as e:
+        print("URLError", e.reason, 'for', domainName)
+    except TimeoutError as e:
+        print("Timed out for", domainName)
+    except socket.timeout:
+        print("Timed out for", domainName)
+    except http.client.BadStatusLine as e:
+        print("BadStatusLine", e, 'for', domainName)
+    else:
+        page = opened.read()
+        if not domainName in opened.geturl():
+            print(domainName, "goes to", opened.geturl())
+        with open(folder + "/" + domainName + ".html", "wb") as text_file:
+            text_file.write(page)
 
-    registrarTotalCounts = {}
-    registrarCurrentCounts = {}
-    for registrar in registrarValues:
-        registrarTotalCounts[registrar] = 0
-        registrarCurrentCounts[registrar] = 0
+def jsonDictAnalysis(nameDict):
+    validNames = getDictSubset(nameDict, lambda record: record.isValidAtHeight(getMaxHeight(nameDict)))
+    validBitNames = getDictSubset(validNames, lambda record: record.namespace() == "d")
+    jsonValidBitNames = getDictSubset(validBitNames, lambda record: record.latestValueJsonDict())
+    counter = collections.Counter([field for name in jsonValidBitNames for field in jsonValidBitNames[name].latestValueJsonDict()])
 
-    for name in nameDict:
-        owner = ""
-        for tx in nameDict[name]:
-            if tx.tx_type() != "new":
-                foundRegistrar = False
-                for registrar in registrarValues:
-                    if tx.value in registrarValues[registrar]:
-                        if owner != registrar:
-                            registrarTotalCounts[registrar] += 1
-                            if owner != "":
-                                ()
-                                # print name, "changed registrar from", owner, "to", registrar
-                        owner = registrar
-                        foundRegistrar = True
-                if not foundRegistrar and owner != "":
-                    # print name, "changed ownership from", owner, "to", tx.value
-                    owner = ""
-        if owner != "":
-            registrarCurrentCounts[owner] += 1
-    print("Registrar Current Counts")
-    for registrar in registrarCurrentCounts:
-        print(registrar, registrarCurrentCounts[registrar])
-    print("Registrar Total Counts")
-    for registrar in registrarTotalCounts:
-        print(registrar, registrarTotalCounts[registrar])
+    fieldDict = collections.defaultdict(list)
+    for name in jsonValidBitNames:
+        for field in jsonValidBitNames[name].latestValueJsonDict():
+            fieldDict[field].append(name)
+
+    # for field in fieldDict:
+    #     print (len(fieldDict[field]), field)
+
+    ipList = [name + " " + nameDict[name].latestValue() for name in fieldDict["alias"]]
+    print("\n".join(ipList))
+    # ipCounter = collections.Counter()
+
+    # for (value, count) in ipCounter.most_common():
+    #     print(count, value)
+
+    # for name in fieldDict["alias"]:
+    #     print(name, nameDict[name].latestValue())
 
 def bitValueFrequencyAnalysis(nameDict):
 
-    validNames = getDictSubset(nameDict, nameIsValid)
-    validBitNames = getDictSubset(validNames, nameHasPrefix("d/"))
-    jsonValidBitNames = getDictSubset(validBitNames, latestValueIsJson)
-    nonJsonValidBitNames = getDictSubset(validBitNames, lambda x: not latestValueIsJson(x))
-    jsonValidBitNamesWithRealInfo = getDictSubset(jsonValidBitNames, latestValueIsValidDNS)
-    jsonValidBitNamesWithBadInfo = getDictSubset(jsonValidBitNames, lambda x: not latestValueIsValidDNS(x))
+    maxHeight = getMaxHeight(nameDict)
 
+    queries = [
+    lambda record: record.isValidAtHeight(maxHeight),
+    lambda record: record.namespace() == "d",
+    lambda record: record.latestValueJson(),
+    latestValueDNSFields
+    ]
 
+    subsets = [nameDict]
+    for i, query in enumerate(queries):
+         subsets.append(getDictSubset(subsets[i], query))
 
-    valueCounts = getCounts(nameDict, getLatestValue)
-    validValueCounts = getCounts(validNames, getLatestValue)
-    validBitValueCounts = getCounts(validBitNames, getLatestValue)
-    validBitJsonCounts = getCounts(jsonValidBitNames, getLatestValue)
-    validBitNonJsonCounts = getCounts(nonJsonValidBitNames, getLatestValue)
-    validBitJsonCountsWithRealInfo = getCounts(jsonValidBitNamesWithRealInfo, getLatestValue)
-    validBitJsonCountsWithBadInfo = getCounts(jsonValidBitNamesWithBadInfo, getLatestValue)
-    uniqueValidBitValues = getDictSubset(validBitJsonCountsWithRealInfo, lambda x: x <= 10)
-    
-    counts = getCounts(jsonValidBitNamesWithRealInfo, latestValueServerDNS)
+    allCounts = [getCounts(subset, NameRecord.latestValue) for subset in subsets]
 
+    # uniqueValidBitValues = getDictSubset(validBitJsonCountsWithRealInfo, lambda x: x <= 10)    
+    # counts = getCounts(jsonValidBitNamesWithRealInfo, latestValueServerDNS)
 
-    print("unique valid bit", len(uniqueValidBitValues))
-    print("total names:", len(nameDict), "unique", len(valueCounts))
-    print("total valid:", len(validNames), "unique", len(validValueCounts))
-    print("total valid bit", len(validBitNames), "unique", len(validBitValueCounts))
-    print("total valid bit not json", len(nonJsonValidBitNames), "unique", len(validBitNonJsonCounts))
-    print("total valid bit json", len(jsonValidBitNames), "unique", len(validBitJsonCounts))
-    print("total valid bit json with real info", len(jsonValidBitNamesWithRealInfo), "unique", len(validBitJsonCountsWithRealInfo))
-    print("total valid bit json with bad info", len(jsonValidBitNamesWithBadInfo), "unique", len(validBitJsonCountsWithBadInfo))
-    print("test", len(counts))
+    labels = ["total names", "total valid", "total valid bit", "total valid bit json", "total valid bit json with real info"]
 
-    print("\nTop non json values")
-
-    for value in counts:
-        print(counts[value], value)
-    # for value, count in getTopValues(validBitNonJsonCounts, 20):
-    #     print(count, value)
-
-    # print("\n\nTop good json values")
-
-    # for value, count in getTopValues(validBitJsonCountsWithRealInfo, 20):
-    #     print(count, value)
-
-    # print("\n\nTop bad json values")
-
-    # for value, count in getTopValues(validBitJsonCountsWithBadInfo, 20):
-    #     print(count, value)
-
-    # print("\n\Rare good json values")
-
-    # for value in uniqueValidBitValues:
-    #     print(value)
+    for label, subset, counts in zip(labels, subsets, allCounts):
+        print("\n\n", label, len(subset), "unique", len(counts), "percentage", str(float(len(counts)) / float(len(subset))))
+        for value, count in getTopValues(counts, 20):
+            print(count, value)
 
 def oneNameAnalysis(nameDict):
-    oneName = getDictSubset(nameDict, nameHasPrefix("u/"))
-    validOneName = getDictSubset(oneName, nameIsValid)
-    nonReserved = getDictSubset(validOneName, lambda x: "reservations@onename.io" not in getLatestValue(x))
-    counts = getCounts(nonReserved, getLatestValue)
+    oneName = getDictSubset(nameDict, lambda record: record.namespace() == "u")
+    validOneName = getDictSubset(oneName, lambda record: record.isValidAtHeight(getMaxHeight(nameDict)))
+    nonReserved = getDictSubset(validOneName, lambda record: "reservations@onename.io" not in record.latestValue())
+    counts = getCounts(nonReserved, NameRecord.latestValue)
     uniqueValues = getDictSubset(counts, lambda x: x == 1)
 
     print("total u records:", len(oneName))
@@ -287,92 +327,266 @@ def oneNameAnalysis(nameDict):
     print("non reserved records", len(nonReserved))
     print("unique non reserved records", len(uniqueValues))
 
-def findSquatterPurchases(nameDict):
-
-    allValues = []
-    for name in nameDict:
-        isFirst = True
-        for record in nameDict[name]:
-            if record.tx_type() != "new":
-                if (not isFirst and prevVal != record.value) or isFirst:
-                    allValues.append(record.value)
-                    prevVal = record.value
-
+def findSquatterThreshold(nameDict):
+    allValues = [x.value for name in nameDict for session in nameDict[name].sessions for x in session.valueChangingOps()]
     counter = collections.Counter(allValues)
 
-    # print(counter.most_common(120))
+    ignoreValues = set(["", "{}", "{\"ns\":[]}"])
 
-    ignoreValues = ["", "{\"map\": {\"\": \"10.0.0.1\"}}", "{\"map\": {\"\": \"127.0.0.1\"}}", "{\"map\":{\"\":\"127.0.0.1\"}}"]
-    possibleSquatterValues = [value for (value, count) in counter.most_common(400)]
+    xData = []
+    yData = []
+
+    for i in range(5, 500):
+        possibleSquatterValues = set([value for (value, count) in list(valuesOverN(counter, i))])
+        xData.append(i)
+        print(i)
+        changeCount = 0
+        for name in nameDict:
+            for session in nameDict[name].sessions:
+                squatter = None
+                for op in session.valueChangingOps():
+                    if op.value not in ignoreValues:
+                        if op.value in possibleSquatterValues:
+                            squatter = op.value
+                        elif squatter:
+                            changeCount += 1
+                            squatter = None
+        yData.append(changeCount)
+
+    plt.plot(xData, yData)
+    plt.show()
+
+def findSquatterPurchases(nameDict):
+
+    allValues = [x.value for name in nameDict for session in nameDict[name].sessions for x in session.valueChangingOps()]
+    counter = collections.Counter(allValues)
+
+    # print(counter['{"email":"virtcoin@gmail.com"}'])
+    # print(counter['{"ip": "74.125.39.104", "info": { "status": "for sale" }, "map": {"": "74.125.39.104", "www": "74.125.39.104"}}'])
+    # print(counter['{"ip":"1.2.3.4","email":"mailmeifyouwanttobuythisname@mail.ru","info":"Send an offer to: mailmeifyouwanttobuythisname@mail.ru"}'])
+    # print(counter['{"ip":"127.0.0.1","map":{"*":{"ip":"127.0.0.1"}}}'])
+    # return
+
+    ignoreValues = set(["", "{}", "{\"ns\":[]}"])
+
+    possibleSquatterValues = set([value for (value, count) in list(valuesOverN(counter, 10))])
 
     changesDict = collections.defaultdict(list)
-    changesList = []
 
-    interestingUpdateDict = {}
+    changeCount = 0
+
+    changesTimeDict = collections.defaultdict(int)
+
     for name in nameDict:
-        owner = ""
-        interestingUpdates = []
-        for tx in nameDict[name]:
-            if tx.tx_type() != "new":
-                if tx.value not in ignoreValues:
-                    foundRegistrar = False
-                    if tx.value in possibleSquatterValues or "guy@guydresher" in tx.value:
-                        foundRegistrar = True
-                        if tx.value != "":
-                            owner = tx.value
-                    if not foundRegistrar and owner != "":
-                        # print(name, "changed ownership from", owner, "to", tx.value)
-                        changesList.append((owner, tx.value))
-                        changesDict[(owner, tx.value)].append(name)
-                        owner = ""
-            else:
-                owner = ""
+        for session in nameDict[name].sessions:
+            squatter = None
+            for op in session.valueChangingOps():
+                if op.value not in ignoreValues:
+                    if op.value in possibleSquatterValues:
+                        squatter = op.value
+                    elif squatter:
+                        changesDict[squatter].append((name, op.value))
+                        changesTimeDict[op.height] += 1
+                        changeCount += 1
+                        squatter = None
 
-    uniqueChanges = [(changesDict[change][0], change) for change in changesDict if len(changesDict[change]) == 1]
+    xData = []
+    yData = []
 
-    for (name, value) in uniqueChanges:
-        print(name, value)
+    cumulativeTotal = 0
+    for height in sorted(changesTimeDict):
+        cumulativeTotal += changesTimeDict[height]
+        xData.append(height)
+        yData.append(cumulativeTotal)
+
+    plt.plot(xData, yData)
+    plt.show()
+
+    for fromVal in changesDict:
+        print("Changes from squatter", fromVal)
+        for (name, toVal) in changesDict[fromVal]:
+            print(name, toVal)
+        print()
+
+    print(changeCount)
+
+def valueOccurenceTime(nameDict):
+    xData = []
+    yData = [[], [], [], []]
+    stepSize = 1000
+    buckets = [1000, 5]
+    maxHeight = getMaxHeight(nameDict)
+    blockTime = blockTimeDict()
+
+    for height in range(0, maxHeight, stepSize):
+        print(height)
+        valueOps = [nameDict[name].opAtHeight(height) for name in nameDict]
+        values = [x.value for x in valueOps if x is not None]
+        counter = collections.Counter(values)
+
+        yData[0].append(len([x for x in values if x == ""]))
+        values = [x for x in values if x != ""]
+
+        for index, occurences in enumerate(buckets): 
+            topVals = set([value for value, count in valuesOverN(counter, occurences)])
+            yData[index + 1].append(len([x for x in values if x in topVals]))
+            values = [x for x in values if x not in topVals]
+
+        yData[-1].append(len(values))
+        xData.append(blockTime[height])
+  
+    plt.subplot(111)
+    plt.plot(xData, yData[0], label="Blank values")
+
+    for index, occurences in enumerate(buckets): 
+        if not index:
+            label = "Greater than " + str(occurences) + " occurences"
+        else:
+            label = "Between " + str(buckets[index - 1]) + " and " + str(occurences) + " occurences"
+        plt.subplot(111)
+        plt.plot(xData, yData[index + 1], label=label)
+    plt.subplot(111)
+    plt.plot(xData, yData[-1], label="Fewer than " + str(buckets[-1]) + " occurences")
+    plt.legend(loc='upper left')
+    plt.show()
+
+def currentNameBreakdown(nameDict):
+    maxHeight = getMaxHeight(nameDict)
+    bitNames = getDictSubset(nameDict, lambda record: record.namespace() == "d")
+    currentNames = [name for name in bitNames if bitNames[name].isValidAtHeight(maxHeight)]
+
+    dotBitAlexa = set(alexaRanks())
+    dirtyWords = [word.strip() for word in open('dirty.txt', 'r')]
+    dirtyWords = set([word.lower() for word in dirtyWords if " " not in word])
+    dictWords = set([word.strip() for word in open('/usr/share/dict/words', 'r')])
+    bitWordList = set(["coin", "satoshi", "wallet", "crypto", "currency", "btc", "nmc", "blockchain"])
+
+    unicodeNames = [name for name in currentNames if name.startswith("d/xn--")]
+    currentNames = [name for name in currentNames if not name.startswith("d/xn--")]
+
+    coinNames = [name for name in currentNames if any(word in name.lower() for word in bitWordList) or name.startswith("d/bit")]
+    currentNames = [name for name in currentNames if not (any(word in name.lower() for word in bitWordList) or name.startswith("d/bit"))]
+
+    numberNames = [name for name in currentNames if set(name[2:]).issubset(set("0123456789"))]
+    currentNames = [name for name in currentNames if not set(name[2:]).issubset(set("0123456789"))]
+
+    alexaNames = [name for name in currentNames if name.lower() in dotBitAlexa]
+    currentNames = [name for name in currentNames if name.lower() not in dotBitAlexa]
+
+    dirtyNames = [name for name in currentNames if any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
+    currentNames = [name for name in currentNames if not any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
+
+    shortNames = [name for name in currentNames if len(name[2:]) <= 3]
+    currentNames = [name for name in currentNames if len(name[2:]) > 3]
+
+    dictNames = [name for name in currentNames if wordnet.synsets(name[2:])]
+    currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
+
+    for i in range(0, 1000):
+        print(random.choice(currentNames))
+
+    print("Unicode", len(unicodeNames))
+    print("Coin", len(coinNames))
+    print("Number", len(numberNames))
+    print("Alexa", len(alexaNames))
+    print("Dirty", len(dirtyNames))
+    print("Short", len(shortNames))
+    print("Dict", len(dictNames))
+    print("Rest", len(currentNames))
+
+def valueOccurrenceHist(nameDict, height):
+    valueOps = [nameDict[name].opAtHeight(height) for name in nameDict]
+    values = [x.value for x in valueOps if x is not None]
+    counter = collections.Counter(values)
+    counts = [counter[value] for value in values]
+
+    print(len(values), "at height", height)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.hist(counts, bins = 10 ** np.linspace(0, np.log10(60000), 50))
+    ax.semilogx()
+    for axis in [ax.xaxis, ax.yaxis]:
+        axis.set_major_formatter(ScalarFormatter())
+    plt.ylim([0,50000])
+
+def alexaAnalysis(nameDict, blockTime):
+    xData = []
+    yData = []
+    dotBitAlexa = alexaRanks()
+
+    bucketsValues = [0, 1000, 10000, 100000, 500000, 1000000]
+    buckets = []
+    labels = []
+    for i, start in enumerate(bucketsValues[:-1]):
+        alexa_names = set([key for key, value in dotBitAlexa.items() if start <= value <= bucketsValues[i + 1]])
+        xData = []
+        for name in alexa_names:
+            if name in nameDict:
+                firstSession = nameDict[name].sessions[0]
+                xData.append(date2num(blockTime[firstSession.firstUpdate.height]))
+        buckets.append(xData)
+        labels.append("Alexa " + str(start) + " to " + str(bucketsValues[i + 1]))
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    ax.hist(buckets, 100, stacked=True, label=labels, cumulative=True)
+
+    months = MonthLocator(range(1, 13), bymonthday=1, interval=4)
+    monthsFmt = DateFormatter("%b '%y")
+
+    ax.xaxis.set_major_locator(months)
+    ax.xaxis.set_major_formatter(monthsFmt)
+    ax.xaxis.set_minor_locator(MonthLocator())
+    ax.format_xdata = DateFormatter('%m-%d-%Y')
 
 
+    ax.grid(True)
+    fig.autofmt_xdate()
+    ax.legend()
+
+    # alexa_names = set([key for key, value in dotBitAlexa.items() if value <= 10000])
+    # for name in alexa_names:
+    #     if name in nameDict:
+    #         nameRecord = nameDict[name]
+    #         firstSession = nameRecord.sessions[0]
+    #         xData.append(dotBitAlexa[name])
+    #         yData.append(blockTime[firstSession.firstUpdate.height])
+
+    # plt.scatter(xData, yData)
+
+    plt.show()
 
 def main(argv):
 
-    nameDict = {}
+    rawNameDict = {}
     nameNewDict = {}
 
     if not os.path.isfile("nameDict.dat"):
-        a = datetime.datetime.now()
         dataList = load_object("python_raw.dat")
-        b = datetime.datetime.now()
-        c = b - a
-        print(c.total_seconds())
-        print("Finished loading data")
 
         for nameInfo in dataList:
-            if nameInfo.tx_type() == "new":
+            if nameInfo.isNew():
                 nameNewDict[nameInfo.tx_hash] = nameInfo
 
-        print("Found", len(nameNewDict), "new names")
-
         for nameInfo in dataList:
-            if nameInfo.tx_type() == "firstUpdate":
-                if nameInfo.tx_hash in nameNewDict:
-                    if nameInfo.name in nameDict:
-                        nameDict[nameInfo.name].append(nameNewDict[nameInfo.tx_hash])
-                        nameDict[nameInfo.name].append(nameInfo)
+            if nameInfo.isFirstUpdate():
+                name = nameInfo.name
+                tx_hash = nameInfo.tx_hash
+                if tx_hash in nameNewDict:
+                    if name in rawNameDict:
+                        rawNameDict[name].append(nameNewDict[tx_hash])
                     else:
-                        nameDict[nameInfo.name] = [nameNewDict[nameInfo.tx_hash], nameInfo]
-                    del nameNewDict[nameInfo.tx_hash]
-                
-
-            if nameInfo.tx_type() == "update":
-                if nameInfo.name in nameDict:
-                    nameDict[nameInfo.name].append(nameInfo)
+                        rawNameDict[name] = [nameNewDict[tx_hash]]
+                    del nameNewDict[tx_hash]
+                    rawNameDict[name].append(nameInfo)
                 else:
-                    nameDict[nameInfo.name] = [nameInfo]
-            # print nameInfo.height, nameInfo.tx_type, nameInfo.name
+                    print("Error, can't find matching new for firstupdate", name)
+            elif nameInfo.isUpdate():
+                rawNameDict[nameInfo.name].append(nameInfo)
 
-        print(len(nameNewDict), "unused NameNew transactions")
+        nameDict = {name:NameRecord(rawNameDict[name]) for name in rawNameDict}
 
         save_object(nameDict, "nameDict.dat")
         # save_object(nameNewDict.values(), "unusedNameNew.dat")
@@ -380,32 +594,39 @@ def main(argv):
         nameDict = load_object("nameDict.dat")
         # nameNewDict = load_object("unusedNameNew.dat")
 
-    # namesInAlexa = {}
-    # failedDomains = []
-    # with open('top-1m.csv', 'rb') as csvfile:
-    #     reader = csv.reader(csvfile)
-    #     for row in reader:
-    #         rank = row[0]
-    #         url = row[1]
-    #         try:
-    #             parsed_url = tldextract.extract(url)
-    #             bitDomain = "d/" + parsed_url.domain
-    #             if bitDomain in nameDict:
-    #                 namesInAlexa[bitDomain] = nameDict[bitDomain]
-    #         except UnicodeError, e:
-    #             failedDomains.append(url)
 
-    # print "Found", len(namesInAlexa), "bit domains"
-    # print "failed domains", failedDomains
+    # blockTime = blockTimeDict()
+    # alexaAnalysis(nameDict, blockTime)
 
+    # for i in [1000, 10000, 25000, 50000, 100000, 125000, 150000, 175000, 200000, getMaxHeight(nameDict)]:
+    #     valueOccurrenceHist(nameDict, i) 
+    #     plt.savefig("test/occurenceHist2_" + str(i) + ".png")
+    #     plt.clf()
 
+    currentNameBreakdown(nameDict)
 
-    # findSquatterPurchases(getDictSubset(nameDict, nameHasPrefix("d/")))
+    # findSquatterPurchases(nameDict)
+    # cProfile.run('valueOccurenceTime(nameDict)')
 
-    # valueFrequencyAnalysis(nameDict)
+    # bitValueFrequencyAnalysis(nameDict)
 
-    # validNames = getDictSubset(nameDict, nameIsValid)
-    # valueCountsByNamespace = getCounts(validNames, lambda x : "Namespace " + getNamespace(x) + ": " + getLatestValue(x))
+    # valueOccurenceTime(nameDict)
+
+    # oneNameAnalysis(nameDict)
+
+    # possibleResolvableNames(nameDict)
+
+    # bitNames = getDictSubset(nameDict, lambda record: record.namespace() == "d")
+    # topValuesAtHeight(bitNames, 140000)
+
+    # valueList = [record.value for name in nameDict for record in nameDict[name] if record.hasValue()]
+    # counter = collections.Counter(valueList)
+
+    # print("\n".join([str(count) + " " + str(value) for (value, count) in counter.most_common(250)]))
+
+    # valueCounts = getCounts(nameDict, NameRecord.latestValue)
+    # validNames = getDictSubset(nameDict, lambda record: record.isValidAtHeight(getMaxHeight(nameDict)))
+    # valueCountsByNamespace = getCounts(validNames, lambda x : "Namespace " + getNamespace(x) + ": " + x.latestValue())
     # namespaceCount = getCounts(validNames, getNamespace)
 
     # for value, count in getTopValues(namespaceCount, 20):
@@ -414,8 +635,7 @@ def main(argv):
     # for value, count in getTopValues(valueCountsByNamespace, 50):
     #     print(count, value)
 
-    bitValueFrequencyAnalysis(nameDict)
-    # oneNameAnalysis(nameDict)
+
 
     # updateCount = getCounts(nameDict, getNumberOfNameTransactions)
     # changeUpdateCount = getCounts(nameDict, getNumberOfValueChanges)
