@@ -22,7 +22,18 @@ import socket
 import os
 import random
 from nltk.corpus import wordnet
+<<<<<<< Updated upstream
 from csv import DictReader
+=======
+
+from math import sqrt
+from sklearn.feature_extraction import DictVectorizer as DV
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier as RF
+from sklearn.metrics import roc_auc_score as AUC
+from sklearn.cross_validation import train_test_split
+from sklearn import naive_bayes
+>>>>>>> Stashed changes
 
 from common import *
 from segment_string import SegmentString
@@ -453,6 +464,94 @@ def valueOccurenceTime(nameDict):
     plt.legend(loc='upper left')
     plt.show()
 
+def resurrectedAnalysis(nameDict):
+    maxHeight = getMaxHeight(nameDict)
+    bitNames = getDictSubset(nameDict, lambda record: record.namespace() == "d")
+    currentNames = [name for name in bitNames if len(bitNames[name].sessions) > 1 and bitNames[name].isValidAtHeight(maxHeight)]
+    print("Resurrected", len(currentNames))
+
+    dotBitAlexa = set(alexaRanks())
+    dirtyWords = [word.strip() for word in open('dirty.txt', 'r')]
+    dirtyWords = set([word.lower() for word in dirtyWords if " " not in word])
+    dictWords = set([word.strip() for word in open('/usr/share/dict/words', 'r')])
+    bitWordList = set(["coin", "satoshi", "wallet", "crypto", "currency", "btc", "nmc", "blockchain"])
+
+    unicodeNames = [name for name in currentNames if name.startswith("d/xn--")]
+    currentNames = [name for name in currentNames if not name.startswith("d/xn--")]
+
+    coinNames = [name for name in currentNames if any(word in name.lower() for word in bitWordList) or name.startswith("d/bit")]
+    currentNames = [name for name in currentNames if not (any(word in name.lower() for word in bitWordList) or name.startswith("d/bit"))]
+
+    numberNames = [name for name in currentNames if set(name[2:]).issubset(set("0123456789"))]
+    currentNames = [name for name in currentNames if not set(name[2:]).issubset(set("0123456789"))]
+
+    alexaNames = [name for name in currentNames if name.lower() in dotBitAlexa]
+    currentNames = [name for name in currentNames if name.lower() not in dotBitAlexa]
+
+    dirtyNames = [name for name in currentNames if any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
+    currentNames = [name for name in currentNames if not any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
+
+    shortNames = [name for name in currentNames if len(name[2:]) <= 3]
+    currentNames = [name for name in currentNames if len(name[2:]) > 3]
+
+    dictNames = [name for name in currentNames if wordnet.synsets(name[2:])]
+    currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
+
+    for i in range(0, 1000):
+        print(random.choice(currentNames))
+
+    print("Unicode", len(unicodeNames))
+    print("Coin", len(coinNames))
+    print("Number", len(numberNames))
+    print("Alexa", len(alexaNames))
+    print("Dirty", len(dirtyNames))
+    print("Short", len(shortNames))
+    print("Dict", len(dictNames))
+    print("Rest", len(currentNames))
+
+def nonResurrectedAnalysis(nameDict):
+    maxHeight = getMaxHeight(nameDict)
+    bitNames = getDictSubset(nameDict, lambda record: record.namespace() == "d")
+    currentNames = [name for name in bitNames if not bitNames[name].isValidAtHeight(maxHeight)]
+    print("Non resurrected", len(currentNames))
+
+    dotBitAlexa = set(alexaRanks())
+    dirtyWords = [word.strip() for word in open('dirty.txt', 'r')]
+    dirtyWords = set([word.lower() for word in dirtyWords if " " not in word])
+    dictWords = set([word.strip() for word in open('/usr/share/dict/words', 'r')])
+    bitWordList = set(["coin", "satoshi", "wallet", "crypto", "currency", "btc", "nmc", "blockchain"])
+
+    unicodeNames = [name for name in currentNames if name.startswith("d/xn--")]
+    currentNames = [name for name in currentNames if not name.startswith("d/xn--")]
+
+    coinNames = [name for name in currentNames if any(word in name.lower() for word in bitWordList) or name.startswith("d/bit")]
+    currentNames = [name for name in currentNames if not (any(word in name.lower() for word in bitWordList) or name.startswith("d/bit"))]
+
+    numberNames = [name for name in currentNames if set(name[2:]).issubset(set("0123456789"))]
+    currentNames = [name for name in currentNames if not set(name[2:]).issubset(set("0123456789"))]
+
+    alexaNames = [name for name in currentNames if name.lower() in dotBitAlexa]
+    currentNames = [name for name in currentNames if name.lower() not in dotBitAlexa]
+
+    dirtyNames = [name for name in currentNames if any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
+    currentNames = [name for name in currentNames if not any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
+
+    shortNames = [name for name in currentNames if len(name[2:]) <= 3]
+    currentNames = [name for name in currentNames if len(name[2:]) > 3]
+
+    dictNames = [name for name in currentNames if wordnet.synsets(name[2:])]
+    currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
+
+
+    print("Unicode", len(unicodeNames))
+    print("Coin", len(coinNames))
+    print("Number", len(numberNames))
+    print("Alexa", len(alexaNames))
+    print("Dirty", len(dirtyNames))
+    print("Short", len(shortNames))
+    print("Dict", len(dictNames))
+    print("Rest", len(currentNames))
+
 def currentNameBreakdown(nameDict):
     maxHeight = getMaxHeight(nameDict)
     bitNames = getDictSubset(nameDict, lambda record: record.namespace() == "d")
@@ -472,6 +571,9 @@ def currentNameBreakdown(nameDict):
     except FileNotFoundError as err:
         print("Passwords file not found.")
         print(err)
+
+    multipleOwner = [name for name in currentNames if len(nameDict[name].sessions) > 1]
+    currentNames = [name for name in currentNames if len(nameDict[name].sessions) == 1]
 
     unicodeNames = [name for name in currentNames if name.startswith("d/xn--")]
     currentNames = [name for name in currentNames if not name.startswith("d/xn--")]
@@ -509,6 +611,7 @@ def currentNameBreakdown(nameDict):
     for i in range(0, 1000):
         print(random.choice(currentNames))
 
+    print("Multiple", len(multipleOwner))
     print("Unicode", len(unicodeNames))
     print("Coin", len(coinNames))
     print("Number", len(numberNames))
@@ -523,6 +626,55 @@ def currentNameBreakdown(nameDict):
     except UnboundLocalError:
         pass
     print("Rest", len(currentNames))
+
+
+def nameClassifier(nameDict):
+
+    maxHeight = getMaxHeight(nameDict)
+    bitNames = getDictSubset(nameDict, lambda record: record.namespace() == "d")
+
+    dotBitAlexa = set(alexaRanks())
+    dirtyWords = [word.strip() for word in open('dirty.txt', 'r')]
+    dirtyWords = set([word.lower() for word in dirtyWords if " " not in word])
+    dictWords = set([word.strip() for word in open('/usr/share/dict/words', 'r')])
+    bitWordList = set(["coin", "satoshi", "wallet", "crypto", "currency", "btc", "nmc", "blockchain"])
+
+    xData = []
+    yData = []
+
+    feature_names = np.array(["inAlexa", "inDict", "inDirty", "isNumber", "length", "coinRelated"])
+
+    for name in bitNames:
+        xData.append([
+            int(name in dotBitAlexa) + 1,                                                       # inAlexa
+            int(len(wordnet.synsets(name[2:])) >= 1) + 1,                                       # inDict
+            int(any(dirtyWord in name.lower() for dirtyWord in dirtyWords)) + 1,                # inDirty
+            int(set(name[2:]).issubset(set("0123456789"))) + 1,                                 # isNumber
+            len(name),                                                                          # length
+            int(any(word in name.lower() for word in bitWordList) or name.startswith("d/bit")) + 1 # coinRelated
+        ])
+        yData.append(int(bitNames[name].isValidAtHeight(maxHeight)))
+
+
+    x_train, x_test, y_train, y_test = train_test_split(xData, yData, test_size=.10, random_state=33)
+
+    mnb = naive_bayes.MultinomialNB()
+    mnb.fit(x_train, y_train)
+    print("Accuracy", mnb.score(x_test, y_test))
+
+    # rf = RF(n_estimators=1, criterion='entropy', max_features='auto', max_depth=20, bootstrap=True, oob_score=True, n_jobs=2, random_state=33)
+    # rf = rf.fit(x_train, y_train)
+
+    # importances = rf.feature_importances_
+    # print(feature_names)
+    # print(importances)
+    # important_names = feature_names[importances > np.mean(importances)]
+    # print(important_names)
+
+    # p = rf.predict_proba(x_test)
+    # auc = AUC(y_test, p[:,1])
+
+    print("RF AUC", auc)
 
 def valueOccurrenceHist(nameDict, height):
     valueOps = [nameDict[name].opAtHeight(height) for name in nameDict]
@@ -633,7 +785,10 @@ def main(argv):
     #     plt.savefig("test/occurenceHist2_" + str(i) + ".png")
     #     plt.clf()
 
-    currentNameBreakdown(nameDict)
+    nameClassifier(nameDict)
+
+    # resurrectedAnalysis(nameDict)
+    # nonResurrectedAnalysis(nameDict)
 
     # findSquatterPurchases(nameDict)
     # cProfile.run('valueOccurenceTime(nameDict)')

@@ -46,7 +46,6 @@ class Namecoin(Sha256NmcAuxPowChain):
     def parse_decoded_txout_script(chain, decoded):
         start = 0
         pushed = 0
-
         start = 0
 
         if match_decoded(decoded[0:len(NAME_NEW_TEMPLATE)], NAME_NEW_TEMPLATE):

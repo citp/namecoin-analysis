@@ -229,12 +229,12 @@ def alexaGraph(dataList, blockTime):
     # xData, yData = trackNamesOverTime(dataList, blockTime, lambda record: record.name.lower() in dotBitAlexa, True)
     # plt.plot(xData, yData)
 
-    groups = [10000, 100000, 250000, 500000, 1000000]
+    groups = [1000, 10000, 100000, 250000, 500000, 1000000]
     for i in groups:
         alexa_names = set([key for key, value in dotBitAlexa.items() if value <= i])
         xData, yData = trackNamesOverTime(dataList, blockTime, lambda record: record.name in alexa_names, True)
         plt.plot(xData, yData, label="top " + str(i) + " domains")
-    plt.legend(loc='upper left')
+    plt.legend()
 
 
 
