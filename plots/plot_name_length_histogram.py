@@ -20,7 +20,8 @@ with open("plotNameLength.txt", "r") as histogram_file:
         histogram[length] = count
 
 # plt.hist(list(histogram.elements()), bins = len(histogram.items()))
-plt.hist(list(histogram.elements()), bins = range(0, 40))
+plt.hist(list(histogram.elements()), bins = range(0, 40),
+         color = "#9ebcda")
 plt.title("Frequency of Name Length", y = 1.02)
 plt.xlabel("Name Length")
 plt.ylabel("Frequency")

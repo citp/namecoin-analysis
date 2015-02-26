@@ -1,4 +1,5 @@
 \section{Methods}
+
 \label{sec:methods}
 
 \subsection{Detecting Squatters}
@@ -8,6 +9,12 @@ Names are owned by individual addresses rather than by identities and it is comm
 
 This behavior provides us with an easy facility to track the presence of squatters since a squatter's contact information is generally constant among all the names he owns. Thus evaluating the frequency of values on the blockchain at any given time, we can measure the rate of squatters compared to regular users.
 There is no clear method for deciding exactly of often a value has to occur in order to assume a squatter has been detected. However even the coarsest grained approach displays the massive amount of squatting on the blockchain. Simply observing the 196023 currently active names, reveals that there are only 34361 unique values.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[scale=.3]{images/valueFrequency}
+\caption{Active names over time broken down by frequency}
+\end{figure*}
 
 In order to provide a more comprehensive look at commonly occurring values in the blockchain over time. We arbitrarily split values into classes based on how often they occur and graph them together. Values that occur more than 1000 times are clearly owned by squatters who very actively gather domain names. Values that occur less than 5 times can be assumed to be owned by individuals. Values that occur somewhere between 5 and 1000 times are probably also squatters. Interestingly this last group of squatters makes up a much smaller percentage of the names registered than the first group, revealing that a small group of extremely active squatters does owns most of the active domains rather than a large number of moderately active squatters.
 
