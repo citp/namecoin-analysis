@@ -23,7 +23,9 @@ import os
 import random
 from nltk.corpus import wordnet
 from csv import DictReader
+
 from common import *
+from segment_string import SegmentString
 
 socket.setdefaulttimeout(10)
 
@@ -495,6 +497,9 @@ def currentNameBreakdown(nameDict):
     dictNames = [name for name in currentNames if wordnet.synsets(name[2:])]
     currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
 
+    multiWords = [name for name in currentNames if SegmentString().string_segments(name[2:])]
+    currentNames = list(set(currentNames) - set(multiWords))
+
     try:
         passwordNames = [name for name in currentNames if name[2:].lower() in passwords]
         currentNames = [name for name in currentNames if name[2:].lower() not in passwords]
@@ -512,6 +517,7 @@ def currentNameBreakdown(nameDict):
     print("Dirty", len(dirtyNames))
     print("Short", len(shortNames))
     print("Dict", len(dictNames))
+    print("Multiple words", len(multiWords))
     try:
         print("Password", len(passwordNames))
     except UnboundLocalError:
