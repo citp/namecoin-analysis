@@ -495,9 +495,11 @@ def currentNameBreakdown(nameDict):
     dictNames = [name for name in currentNames if wordnet.synsets(name[2:])]
     currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
 
-    if passwords:
+    try:
         passwordNames = [name for name in currentNames if name[2:].lower() in passwords]
         currentNames = [name for name in currentNames if name[2:].lower() not in passwords]
+    except UnboundLocalError:
+        pass
 
     for i in range(0, 1000):
         print(random.choice(currentNames))
