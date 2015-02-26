@@ -498,7 +498,7 @@ def currentNameBreakdown(nameDict):
     try:
         passwordNames = [name for name in currentNames if name[2:].lower() in passwords]
         currentNames = [name for name in currentNames if name[2:].lower() not in passwords]
-    except UnboundLocalError:
+    except NameError:
         pass
 
     for i in range(0, 1000):
@@ -512,7 +512,10 @@ def currentNameBreakdown(nameDict):
     print("Dirty", len(dirtyNames))
     print("Short", len(shortNames))
     print("Dict", len(dictNames))
-    print("Password", len(passwordNames))
+    try:
+        print("Password", len(passwordNames))
+    except UnboundLocalError:
+        pass
     print("Rest", len(currentNames))
 
 def valueOccurrenceHist(nameDict, height):
