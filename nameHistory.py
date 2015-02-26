@@ -22,6 +22,7 @@ import socket
 import os
 import random
 from nltk.corpus import wordnet
+from csv import DictReader
 from common import *
 
 socket.setdefaulttimeout(10)
@@ -460,6 +461,15 @@ def currentNameBreakdown(nameDict):
     dirtyWords = set([word.lower() for word in dirtyWords if " " not in word])
     dictWords = set([word.strip() for word in open('/usr/share/dict/words', 'r')])
     bitWordList = set(["coin", "satoshi", "wallet", "crypto", "currency", "btc", "nmc", "blockchain"])
+    with open("name_lists/surnames.csv", "r") as surnames_file:
+        reader = DictReader(surnames_file)
+        surnamesSet = set(line["name"].lower() for line in reader)
+    try:
+        with open("/media/paul/Storage/torrent/data/words.txt", "r", encoding = "latin-1") as passwords_file:
+            passwords = set(word.strip().lower() for word in passwords_file)
+    except FileNotFoundError as err:
+        print("Passwords file not found.")
+        print(err)
 
     unicodeNames = [name for name in currentNames if name.startswith("d/xn--")]
     currentNames = [name for name in currentNames if not name.startswith("d/xn--")]
@@ -473,6 +483,9 @@ def currentNameBreakdown(nameDict):
     alexaNames = [name for name in currentNames if name.lower() in dotBitAlexa]
     currentNames = [name for name in currentNames if name.lower() not in dotBitAlexa]
 
+    surnamesSet = [name for name in currentNames if name[2:].lower() in surnamesSet]
+    currentNames = [name for name in currentNames if name[2:].lower() not in surnamesSet]
+
     dirtyNames = [name for name in currentNames if any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
     currentNames = [name for name in currentNames if not any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
 
@@ -482,16 +495,22 @@ def currentNameBreakdown(nameDict):
     dictNames = [name for name in currentNames if wordnet.synsets(name[2:])]
     currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
 
+    if passwords:
+        passwordNames = [name for name in currentNames if name[2:].lower() in passwords]
+        currentNames = [name for name in currentNames if name[2:].lower() not in passwords]
+
     for i in range(0, 1000):
         print(random.choice(currentNames))
 
     print("Unicode", len(unicodeNames))
     print("Coin", len(coinNames))
     print("Number", len(numberNames))
+    print("Surnames", len(surnamesSet))
     print("Alexa", len(alexaNames))
     print("Dirty", len(dirtyNames))
     print("Short", len(shortNames))
     print("Dict", len(dictNames))
+    print("Password", len(passwordNames))
     print("Rest", len(currentNames))
 
 def valueOccurrenceHist(nameDict, height):
