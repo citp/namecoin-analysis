@@ -11,9 +11,9 @@ class SegmentString:
 
     def string_segments(self, input_string):
         if len(input_string) < 3 and input_string in short_words:
-            return input_string
+            return 1
         elif len(input_string) > 2 and wordnet.synsets(input_string):
-            return input_string
+            return 1
         if input_string in self._memoize:
             return self._memoize[input_string]
         
@@ -24,10 +24,10 @@ class SegmentString:
                 suffix = input_string[i:]
                 suffix_segmentation = self.string_segments(suffix)
                 if suffix_segmentation:
-                    self._memoize[input_string] = prefix + " " + suffix_segmentation
-                    return prefix + " " + suffix_segmentation
-        self._memoize[input_string] = False
-        return False
+                    self._memoize[input_string] = 1 + suffix_segmentation
+                    return 1 + suffix_segmentation
+        self._memoize[input_string] = 0
+        return 0
 
 
 # uncomment these lines to play around with it.
