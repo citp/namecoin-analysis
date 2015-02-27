@@ -276,6 +276,16 @@ class NameRecord(object):
     def latestValueJsonDict(self):
         return self.latestOp().jsonDict()
 
+    def numberOfValueChanges(self):
+        return sum([session.numberOfValueChanges() for session in self.sessions])
+
+    def totalBlocksActive(self):
+        totalActive = 0
+
+    def reregistrationGap(self, maxHeight):
+
+        return 0
+
     def popOpAtHeight(self, height):
         op = None
         sessionsToRemove = []

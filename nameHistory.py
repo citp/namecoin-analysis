@@ -22,9 +22,8 @@ import socket
 import os
 import random
 from nltk.corpus import wordnet
-<<<<<<< Updated upstream
 from csv import DictReader
-=======
+import itertools
 
 from math import sqrt
 from sklearn.feature_extraction import DictVectorizer as DV
@@ -33,7 +32,6 @@ from sklearn.ensemble import RandomForestClassifier as RF
 from sklearn.metrics import roc_auc_score as AUC
 from sklearn.cross_validation import train_test_split
 from sklearn import naive_bayes
->>>>>>> Stashed changes
 
 from common import *
 from segment_string import SegmentString
@@ -71,10 +69,10 @@ def latestValueDNSFields(record):
     dataFields = ["email", "loc", "info", "fingerprint", "tls", "ds"]
     json_object = record.latestValueJsonDict()
     if json_object:
-        serverKeys = [key for key in list(set(json_object.keys()) & set(serverFields)) if len(json_object[key]) > 0]
+        serverKeys = [key for key in list(set(json_object.keys()) & set(serverFields)) if not isinstance(json_object[key], int) and len(json_object[key]) > 0]
         return filterValidDNSEntries({key:json_object[key] for key in json_object if key in serverKeys})
     else:
-        return False
+        return []
 
 def filterValidDNSEntries(json_object):
     fieldDict = {key: json_object[key] for key in json_object}
@@ -543,14 +541,21 @@ def nonResurrectedAnalysis(nameDict):
     currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
 
 
-    print("Unicode", len(unicodeNames))
-    print("Coin", len(coinNames))
-    print("Number", len(numberNames))
-    print("Alexa", len(alexaNames))
-    print("Dirty", len(dirtyNames))
-    print("Short", len(shortNames))
-    print("Dict", len(dictNames))
-    print("Rest", len(currentNames))
+    print("Unicode", len(list(unicodeNames)))
+    print("Coin", len(list(coinNames)))
+    print("Number", len(list(numberNames)))
+    print("Alexa", len(list(alexaNames)))
+    print("Dirty", len(list(dirtyNames)))
+    print("Short", len(list(shortNames)))
+    print("Dict", len(list(dictNames)))
+    print("Rest", len(list(currentNames)))
+
+def partition(items, predicate=bool):
+    yesList = []
+    noList = []
+    for item in items:
+        (yesList if predicate(item) else noList).append(item)
+    return yesList, noList
 
 def currentNameBreakdown(nameDict):
     maxHeight = getMaxHeight(nameDict)
@@ -565,66 +570,33 @@ def currentNameBreakdown(nameDict):
     with open("name_lists/surnames.csv", "r") as surnames_file:
         reader = DictReader(surnames_file)
         surnamesSet = set(line["name"].lower() for line in reader)
-    try:
-        with open("/media/paul/Storage/torrent/data/words.txt", "r", encoding = "latin-1") as passwords_file:
-            passwords = set(word.strip().lower() for word in passwords_file)
-    except FileNotFoundError as err:
-        print("Passwords file not found.")
-        print(err)
 
-    multipleOwner = [name for name in currentNames if len(nameDict[name].sessions) > 1]
-    currentNames = [name for name in currentNames if len(nameDict[name].sessions) == 1]
 
-    unicodeNames = [name for name in currentNames if name.startswith("d/xn--")]
-    currentNames = [name for name in currentNames if not name.startswith("d/xn--")]
+    multipleOwner, currentNames = partition(currentNames, lambda name: len(nameDict[name].sessions) > 1)
+    unicodeNames, currentNames = partition(currentNames, lambda name: name.startswith("d/xn--"))
+    coinNames, currentNames = partition(currentNames, lambda name: any(word in name.lower() for word in bitWordList) or name.startswith("d/bit"))
+    numberNames, currentNames = partition(currentNames, lambda name: set(name[2:]).issubset(set("0123456789")))
+    alexaNames, currentNames = partition(currentNames, lambda name: name.lower() in dotBitAlexa)
+    surnamesSet, currentNames = partition(currentNames, lambda name: name[2:].lower() in surnamesSet)
+    dirtyNames, currentNames = partition(currentNames, lambda name: any(dirtyWord in name.lower() for dirtyWord in dirtyWords))
+    shortNames, currentNames = partition(currentNames, lambda name: len(name[2:]) <= 3)
+    dictNames, currentNames = partition(currentNames, lambda name: wordnet.synsets(name[2:]))
+    multiWords, currentNames = partition(currentNames, lambda name: SegmentString().string_segments(name[2:]))
 
-    coinNames = [name for name in currentNames if any(word in name.lower() for word in bitWordList) or name.startswith("d/bit")]
-    currentNames = [name for name in currentNames if not (any(word in name.lower() for word in bitWordList) or name.startswith("d/bit"))]
+    # remaining = list(currentNames)
 
-    numberNames = [name for name in currentNames if set(name[2:]).issubset(set("0123456789"))]
-    currentNames = [name for name in currentNames if not set(name[2:]).issubset(set("0123456789"))]
-
-    alexaNames = [name for name in currentNames if name.lower() in dotBitAlexa]
-    currentNames = [name for name in currentNames if name.lower() not in dotBitAlexa]
-
-    surnamesSet = [name for name in currentNames if name[2:].lower() in surnamesSet]
-    currentNames = [name for name in currentNames if name[2:].lower() not in surnamesSet]
-
-    dirtyNames = [name for name in currentNames if any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
-    currentNames = [name for name in currentNames if not any(dirtyWord in name.lower() for dirtyWord in dirtyWords)]
-
-    shortNames = [name for name in currentNames if len(name[2:]) <= 3]
-    currentNames = [name for name in currentNames if len(name[2:]) > 3]
-
-    dictNames = [name for name in currentNames if wordnet.synsets(name[2:])]
-    currentNames = [name for name in currentNames if not wordnet.synsets(name[2:])]
-
-    multiWords = [name for name in currentNames if SegmentString().string_segments(name[2:])]
-    currentNames = list(set(currentNames) - set(multiWords))
-
-    try:
-        passwordNames = [name for name in currentNames if name[2:].lower() in passwords]
-        currentNames = [name for name in currentNames if name[2:].lower() not in passwords]
-    except NameError:
-        pass
-
-    for i in range(0, 1000):
-        print(random.choice(currentNames))
+    # for i in range(0, 1000):
+    #     print(random.choice(remaining))
 
     print("Multiple", len(multipleOwner))
     print("Unicode", len(unicodeNames))
     print("Coin", len(coinNames))
     print("Number", len(numberNames))
-    print("Surnames", len(surnamesSet))
     print("Alexa", len(alexaNames))
     print("Dirty", len(dirtyNames))
     print("Short", len(shortNames))
     print("Dict", len(dictNames))
     print("Multiple words", len(multiWords))
-    try:
-        print("Password", len(passwordNames))
-    except UnboundLocalError:
-        pass
     print("Rest", len(currentNames))
 
 
@@ -691,6 +663,49 @@ def valueOccurrenceHist(nameDict, height):
     for axis in [ax.xaxis, ax.yaxis]:
         axis.set_major_formatter(ScalarFormatter())
     plt.ylim([0,50000])
+
+def rankByFunc(nameDict, nameRecordValue, higherIsBetter):
+    nameRawValues = {name:nameRecordValue(nameDict[name]) for name in nameDict}
+
+    nameRanks = {}
+
+    rank = 1
+
+    prevUpdates = None
+
+    for (name, value) in sorted(nameRawValues.items(), key=lambda x: x[1], reverse=higherIsBetter):
+        if not prevUpdates:
+            nameRanks[name] = rank
+            prevUpdates = value
+        else:
+            if value < prevUpdates:
+                rank = len(nameRanks) + 1
+                prevUpdates = value
+            nameRanks[name] = rank
+            
+    i = 0
+    for (name, value) in sorted(nameRanks.items(), key=lambda x: x[1]):
+        print(name, value, nameRawValues[name])
+        i += 1
+        if i > 1000:
+            break
+    return nameRanks
+
+def rankNumberOfValueChanges(nameDict):
+    rankByFunc(nameDict, lambda record: record.numberOfValueChanges(), True)
+
+def rankIsAlive(nameDict):
+    maxHeight = getMaxHeight(nameDict)
+    rankByFunc(nameDict, lambda record: int(record.isValidAtHeight(maxHeight)), True)
+
+def rankJSONDict(nameDict):
+    maxHeight = getMaxHeight(nameDict)
+    rankByFunc(nameDict, lambda record: int(record.latestValueJsonDict()), True)
+
+def rankValidDNSDict(nameDict):
+    maxHeight = getMaxHeight(nameDict)
+    rankByFunc(nameDict, lambda record: int(len(latestValueDNSFields(record)) > 0), True)
+
 
 def alexaAnalysis(nameDict, blockTime):
     xData = []
@@ -785,7 +800,9 @@ def main(argv):
     #     plt.savefig("test/occurenceHist2_" + str(i) + ".png")
     #     plt.clf()
 
-    nameClassifier(nameDict)
+    rankValidDNSDict(nameDict)
+
+    # currentNameBreakdown(nameDict)
 
     # resurrectedAnalysis(nameDict)
     # nonResurrectedAnalysis(nameDict)
