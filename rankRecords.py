@@ -2,6 +2,7 @@
 
 import pickle
 from nameHistory import getMaxHeight, latestValueDNSFields
+from common import getDictSubset
 
 def rankByFunc(nameDict, nameRecordValue, higherIsBetter):
     nameRawValues = {name:nameRecordValue(nameDict[name]) for name in nameDict}
@@ -47,21 +48,24 @@ def rankValidDNSDict(nameDict, max_height):
                True)
 
 def rankByTimeActive(nameDict, maxHeight):
-    return rankByFunc(name_dict,
+    return rankByFunc(nameDict,
                       lambda record: record.fractionRegistered(maxHeight),
                       True)
 
 
 def main():
     with open("nameDict.dat", "rb") as name_file:
-        name_dict = pickle.load(name_file)
-    max_height = getMaxHeight(name_dict)
+        nameDict = pickle.load(name_file)
 
-    rankNumberOfValueChanges(name_dict, max_height)
-    rankIsAlive(name_dict, max_height)
-    rankJSONDict(name_dict, max_height)
-    rankValidDNSDict(name_dict, max_height)
-    rankByTimeActive(name_dict, max_height)
+        bitNames = getDictSubset(nameDict,
+                                 lambda record: record.namespace() == "d")
+    max_height = getMaxHeight(nameDict)
+
+    valueChangeRank = rankNumberOfValueChanges(nameDict, max_height)
+    aliveRank = rankIsAlive(nameDict, max_height)
+    validJSONRank = rankJSONDict(nameDict, max_height)
+    validDNSRank = rankValidDNSDict(nameDict, max_height)
+    timeActiveRank = rankByTimeActive(nameDict, max_height)
     
 
 if __name__ == "__main__":
