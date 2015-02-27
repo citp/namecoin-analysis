@@ -1,0 +1,156 @@
+plot resurrections vs. time period after expires [done]
+Add time data points for change in expire time [done]
+
+statistics on names currently registered
+        -like 60% are in alexa top mil (they aren't)
+
+explain what types of names are taken (current domains)
+    -dirty
+    -alexa
+    -drugs
+    -brute force short names (not in dic)
+    -dictionary words  
+    -long random char strings
+
+
+
+Papers Notes:
+    insight on introduction:
+    -why are squatters bad? (our disc eariler for readers benefit)
+    -why are we studying namecoin?
+        -namecoin doesn't want to be a currency
+        -namecoin was the first
+        -use blockchain tech for something other than a currency
+        -key/value store makes it a platform for other applications
+        -usability cost of using d/ vs oneName
+        -what if namecoin was free?
+        -economic argument about OneName
+            -why it works?
+            -etc.
+    -other alt coins doing things other than currency? with users?
+        -if no, can make the claim that blockchains might not be good for 
+    -methodological contributions
+    -how valuable a name is (estimate parameters: name length, content, did it expire?, when registered, has legit value)
+        -numerical score based on observables
+        -try to estimate weights of input values
+        -WHAT LETS YOU PREDICT THE VALUE OF A DOMAIN?
+        -about methodology, not results
+            -rigorous
+
+
+explain decision on what to res-- could contribute to model
+
+==================================================================================
+
+-need a formal model
+-assumptions needed about a namespace
+    -assume the value of different names is different
+    -names also have different values to different people (food.com is equally valuable to all)
+        -(utility function?)
+    -reveals complexity in the market
+    -squatting is a problem because: 
+        -market for buying and selling domain names is inefficient
+        -search costs
+        -not achieving welfare maximization
+        -the value of a domain that a squatter owns may increase in value if a new buyer starts using the system, or becomes
+            aware that they want a certain name
+        -inherent inefficiency in the market because a squatter needs to predict if the name will increase in value in the
+            future, vs selling it right now
+    -ideally each name should go to who ever has the most utility for a name
+    -consider model where cost to register a name is an asymptotically decreasing to zero function
+    -claim:this is the same as a first price auction    
+
+    -network effect: value of network is quadratically related to the number of participants
+        -people who adopt have an interest in getting others to adopt
+    -squatter delima: selling a domain can increase the value of the rest of their domains
+        -but they lose this domain for essentially 0 profit
+      -all the squatters hope someone else will help bootstrap the system for their benefit
+        -tradegedy of the commons 
+        -total monopoly? then you know you can't count on others -> know you need to do the bootstraping
+        -monopoly works, forced diversity works-- problem in the middle
+    -put the unix dictionary statistic into the paper
+        
+
+    -interesting idea: what if the names are locked to a key? can't sell, trade-- what if it doesn't expire?
+        -lose the ability to differentiate price of different domains
+
+    -could offer mapping the design space
+        -design choices (can do A or not A)
+
+============================================================================================
+2/27
+    -3 parts left-- empirical part (data collection), mapping design space, and writing
+    -analyze content in corpus we collected (out of reachable websites with content)
+        -look for content duplication
+    ->put table into paper with (abstract? get the readers attention that we take 200,000 to 7):
+     
+    Total key value pairs: 191,000     
+    Possibly valid DNS: 17,000
+    Unique: ?? ~6000
+    Curl: almost same^ 
+    
+    Knock off stuff with:
+        not a redirect: removes a few hundred
+        squatter filtering
+        de-dup IPs: removes about 5,000 (leaving 1k)
+            -of those, how many are on a hosting site etc
+        expired, errors, etc: 
+        looked through to remove ones with a normal TLD variant 
+        -> put in paper stats on who has the same domain name on a different TLD vs same
+        down to 77 domains
+            -size heuristic to remove small domains (based on content)
+
+    -> add limitations section describing that there could be interesting results we missed
+
+    ->put in paper: list of possible values for .bit (like IPv6, NS IP, NS, etc)
+    -small scale test to verify that pinging NS via open nick was working
+    -look into policies of hosting sites for different TLDs
+        ->put into paper, how to host-- you need to cal a hosting service
+         to manually allow .bit
+           https://wiki.namecoin.info/index.php?title=Register_and_Configure_.bit_Domains
+
+    Map out design space for namecoin alternative fees:
+
+    Cost to a user for taking and using a name
+        3 types of fees:
+            -miner
+            -burn
+            -escrow
+    Challenge of pricing schemes based on changing price of namecoin
+        -denominated in external currency
+      Different Price Method Tree
+        times when you pay (potentially):
+            -1st registration
+                -set by auction
+                    -timing of auctions
+                        (splitting auctions into these categories-> useful?)
+                        -trigger mechanism
+                        -periodicity
+                            -a person potentially interested in a large number of domains would need 
+                             to constantly by ready to bid without this
+                -set by system
+                    -domain dependent (like length)?
+                        -oracle
+                    -globally fixed
+                    -time dependent 
+                    -size dependence
+            -update
+            -renewal
+                -auctions on renewals
+            -challenge
+                Reasons for challenge:
+                    -two parties have utility for a name (highest economic utility)
+                    -some entity doesn't want a user to have a domain (prevent seizure)
+                  (difference between positive and negative utility)
+            
+    -oracle with predictive model-- guesses price based on price of past domains
+
+
+    -machine learning thing to predict price
+
+
+
+
+
+
+
