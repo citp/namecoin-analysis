@@ -147,9 +147,47 @@ explain decision on what to res-- could contribute to model
 
 
     -machine learning thing to predict price
+        -machine learning: regression-- x is data about the name
+                                        y is data about "value"
+                                        "value" is composed of it's history and stuff
+                    think--> get inherent value of the name itself!!
 
-==========================================================================
+        Scoring function:
 
+              [x]  #times re-registered
+                jesus gap
+                is latest value JSON/valid looking dns record
+                fraction of time active
+                # of changes to value
+                alive now?
+              [x] fraction of time dead
+
+            linear combination? 
+            consider forcing ranking to make sure  the entire score space is used
+            MAP (mean average precision)
+             
+                score = sum_i (N-r_i)/N  binary values contribute 0 or 1/2 to the score
+
+            -try to learn how much of the value is controlled by the different factors
+                (alexa causes 30% of value, etc etc)
+            
+Paper:
+    -put methodology with results
+    -maybe put number of name sales in abstract?
+
+    Structure/sections of the paper:
+
+            -lack of evidence of people trading names
+
+            -1 assumptions inherent
+            -2 analysis of domains
+            -3 analysis of market
+            -4 modeling of value
+            -5 thoughts on design space
+
+            -value features (features are the ones we identified for the piechart-ish):
+                -common-ness of words
+                
 
 
 
