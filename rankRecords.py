@@ -57,11 +57,11 @@ def main():
                                  lambda record: record.namespace() == "d")
     max_height = getMaxHeight(nameDict)
 
-    valueChangeRank = rankNumberOfValueChanges(nameDict, max_height)
-    aliveRank = rankIsAlive(nameDict, max_height)
-    validJSONRank = rankJSONDict(nameDict, max_height)
-    validDNSRank = rankValidDNSDict(nameDict, max_height)
-    timeActiveRank = rankByTimeActive(nameDict, max_height)
+    valueChangeRank = rankNumberOfValueChanges(bitNames, max_height)
+    aliveRank = rankIsAlive(bitNames, max_height)
+    validJSONRank = rankJSONDict(bitNames, max_height)
+    validDNSRank = rankValidDNSDict(bitNames, max_height)
+    timeActiveRank = rankByTimeActive(bitNames, max_height)
     
 
 if __name__ == "__main__":
