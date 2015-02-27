@@ -13,14 +13,10 @@ def rankByFunc(nameDict, nameRecordValue, higherIsBetter):
     prevUpdates = None
 
     for (name, value) in sorted(nameRawValues.items(), key=lambda x: x[1], reverse=higherIsBetter):
-        if not prevUpdates:
-            nameRanks[name] = rank
-            prevUpdates = value
-        else:
-            if value < prevUpdates:
-                rank = len(nameRanks) + 1
-                prevUpdates = value
-            nameRanks[name] = rank
+        if prevUpdates and (value < prevUpdates) is higherIsBetter:
+            rank = len(nameRanks) + 1
+        prevUpdates = value
+        nameRanks[name] = rank
             
     i = 0
     for (name, value) in sorted(nameRanks.items(), key=lambda x: x[1]):
