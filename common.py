@@ -279,6 +279,14 @@ class NameRecord(object):
     def numberOfValueChanges(self):
         return sum([session.numberOfValueChanges() for session in self.sessions])
 
+    def fractionRegistered(self, highest_block):
+        """Calculate and return the fraction of time (in blocks) this name has been registered"""
+        total_blocks = 0
+        for session in self.sessions:
+            total_blocks += min(session.endHeight, highest_block) - session.startHeight
+        return total_blocks / highest_block
+
+    
     def totalBlocksActive(self):
         totalActive = 0
 
