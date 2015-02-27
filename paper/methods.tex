@@ -1,24 +1,30 @@
 \section{Methods}
-
+There a number of users in the Namecoin system who have bought up massive numbers of names for the purpose of transferring or selling them, referred to in this paper, as well as the Namecoin community as squatters. A very large percentage of the name transactions in the Namecoin blockchain is made up of squatters. In this section we attempt to identify the occurrence of squatting in the blockchain. Then we categorize what types of names squatters register. Finally we attempt to quantify the success of these squatters in selling or transferring their names to regular users.
 \label{sec:methods}
 
 \subsection{Detecting Squatters}
-There a number of users in the Namecoin system who have bought up massive numbers of names for the purpose of transferring or selling them, referred to in this paper, as well as the Namecoin community as squatters. A very large percentage of the name transactions in the Namecoin blockchain is made up of squatters. In this section we attempt to identify the occurrence of squatting in the blockchain. Later we will attempt to quantify the success of these squatters in selling or transferring their names to regular users.
 
 Names are owned by individual addresses rather than by identities and it is common practice to keep each purchased name under a different address. Thus it is difficult to assess how many names a single person owns. However many squatters are easily identified through the values they set on names they own. Since there is no built-in mechanism for the marketing and sale of names built into Namecoin, squatters use the values of names they own to display contact information. This information generally comes in the form of either contact information stored directly in the value of a name, or contact information stored on the IP address to which the name resolves.
 
 This behavior provides us with an easy facility to track the presence of squatters since a squatter's contact information is generally constant among all the names he owns. Thus evaluating the frequency of values on the blockchain at any given time, we can measure the rate of squatters compared to regular users.
+
 There is no clear method for deciding exactly of often a value has to occur in order to assume a squatter has been detected. However even the coarsest grained approach displays the massive amount of squatting on the blockchain. Simply observing the 196023 currently active names, reveals that there are only 34361 unique values.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[scale=.3]{images/valueFrequency}
-\caption{Active names over time broken down by frequency}
-\end{figure*}
+% \begin{figure*}[t]
+% \centering
+% \includegraphics[scale=.3]{images/valueFrequency}
+% \caption{Active names over time broken down by frequency}
+% \end{figure*}
 
 In order to provide a more comprehensive look at commonly occurring values in the blockchain over time. We arbitrarily split values into classes based on how often they occur and graph them together. Values that occur more than 1000 times are clearly owned by squatters who very actively gather domain names. Values that occur less than 5 times can be assumed to be owned by individuals. Values that occur somewhere between 5 and 1000 times are probably also squatters. Interestingly this last group of squatters makes up a much smaller percentage of the names registered than the first group, revealing that a small group of extremely active squatters does owns most of the active domains rather than a large number of moderately active squatters.
 
 We use this same standard for identifying squatters throughout the rest of the paper.
+
+\subsection{Categorizing Squatter Name Decisions}
+
+As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and through this try to interpret the decisions these squatters have made. Surprisingly squatters do no follow many obvious strategies of name selection.
+
+STUB
 
 \subsection{Detecting Name Sales and Transfers}
 

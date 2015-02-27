@@ -27,9 +27,9 @@ for f in listdir("scrape_data"):
 
 	if len(oldDomains) > 0:
 		if len(addedDomains) > 0:
-			print("Added domains", addedDomains)
+			print(f, "Added domains", addedDomains)
 		if len(removedDomains) > 0:
-			print("Removed domains", removedDomains)
+			print(f, "Removed domains", removedDomains)
 
 	oldDomains = domains
 

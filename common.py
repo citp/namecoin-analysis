@@ -10,6 +10,7 @@ import tldextract
 import subprocess
 import threading
 import re
+import collections
 
 def is_valid_hostname(hostname):
     if len(hostname) > 255:
@@ -43,7 +44,7 @@ def getDictSubset(nameDict, conditionFunc):
     return { key:value for key, value in nameDict.items() if conditionFunc(value) }
 
 def alexaRanks():
-    dotBitAlexa = {}
+    dotBitAlexa = collections.defaultdict(int)
     failedDomains = []
     with open('top-1m.csv', 'r') as csvfile:
         reader = csv.reader(csvfile)
