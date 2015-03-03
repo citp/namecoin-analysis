@@ -100,7 +100,7 @@ explain decision on what to res-- could contribute to model
         down to 77 domains
             -size heuristic to remove small domains (based on content)
 
-    -> add limitations section describing that there could be interesting results we missed
+    ->add limitations section describing that there could be interesting results we missed
 
     ->put in paper: list of possible values for .bit (like IPv6, NS IP, NS, etc)
     -small scale test to verify that pinging NS via open nick was working
@@ -108,6 +108,8 @@ explain decision on what to res-- could contribute to model
         ->put into paper, how to host-- you need to cal a hosting service
          to manually allow .bit
            https://wiki.namecoin.info/index.php?title=Register_and_Configure_.bit_Domains
+
+            =>paul
 
     Map out design space for namecoin alternative fees:
 
@@ -188,8 +190,29 @@ Paper:
             -value features (features are the ones we identified for the piechart-ish):
                 -common-ness of words
                 
+=======================================================
+3/2
 
+use proper technical terminology
+    -dns lookup
+    -frontrunning
+        -name new mechanism only needed in some designs
+differentiate mechanism design
+    -differentiate between economics/crypto etc.
+        -separate
 
+change claim about squatters having same value in their name/values
+    -heuristic, but good because it is a bound
+
+atomic transaction 
+    -diagram
+
+=======================================================
+practical reasons why users don;t use namecoin
+trust agility
+    -having multiple authorities allows people to move from one to the other
+        -increases security
+    -well recognized intermediate level of security
 
 
 
