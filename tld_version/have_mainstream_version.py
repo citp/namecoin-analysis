@@ -23,7 +23,7 @@ def save_resolutions(resolutions):
 resolutions = defaultdict(dict)
 
 for i, name in enumerate(names_to_check):
-    if i % 1000 is 0:
+    if i % 10000 is 0:
         print(i)
         save_resolutions(resolutions)
     if "." in name:
@@ -44,5 +44,8 @@ for i, name in enumerate(names_to_check):
             print(e)
             resolutions[name][tld] = e
             resolutions["Error"] = True
+
+save_resolutions(resolutions)
+print("Done resolving.")
             
 
