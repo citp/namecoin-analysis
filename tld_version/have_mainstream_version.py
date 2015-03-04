@@ -16,12 +16,18 @@ with open("names_to_check.pickle", "rb") as name_file:
 # with open("bit_names.pickle", "wb") as name_file:
 #    pickle.dump(names_to_check, name_file)
 
+def save_resolutions(resolutions):
+    with open("name_check_results.pickle", "wb") as output_file:
+        pickle.dump(resolutions, output_file)
+
 resolutions = defaultdict(dict)
 
 for i, name in enumerate(names_to_check):
     if i % 1000 is 0:
         print(i)
+        save_resolutions(resolutions)
     if "." in name:
+        resolutions[name] = {"Error": "'.' in name"} 
         continue
     for tld in VARIANTS:
         try:
@@ -39,5 +45,4 @@ for i, name in enumerate(names_to_check):
             resolutions[name][tld] = e
             resolutions["Error"] = True
             
-with open("name_check_results.pickle", "wb") as output_file:
-    pickle.dump(resolutions, output_file)
+
