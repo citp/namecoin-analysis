@@ -9,7 +9,9 @@ from nltk.corpus import wordnet
 from sklearn.linear_model import ElasticNet
 
 from sklearn.metrics import roc_auc_score as AUC
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split, cross_val_score
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_regression
 
 from segment_string import SegmentString
 
@@ -95,13 +97,16 @@ def main():
             SegmentString().string_segments(name[2:])
     ])
 
-    x_train, x_test, y_train, y_test = train_test_split(xData, yData, test_size=.10, random_state=33)
+    # x_train, x_test, y_train, y_test = train_test_split(xData, yData, test_size=.10, random_state=33)
 
     alpha = 0.1
     enet = ElasticNet(alpha=alpha)
-    y_pred_enet = enet.fit(x_train, y_train).score(x_test, y_test)   
-    print(y_pred_enet)
-    print(enet.get_params())
+
+    score = cross_val_score(enet, xData, yData, scoring='r2_score')
+    print(score)
+    # y_pred_enet = enet.fit(x_train, y_train).score(x_test, y_test)   
+    # print(y_pred_enet)
+    # print(enet.get_params())
 
 if __name__ == "__main__":
     main()
