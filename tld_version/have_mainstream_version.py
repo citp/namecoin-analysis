@@ -25,7 +25,7 @@ for i, name in enumerate(names_to_check):
         continue
     for tld in VARIANTS:
         try:
-            gethostbyname(name)
+            gethostbyname(name + tld)
             resolutions[name][tld] = True
         except gaierror:
             resolutions[name][tld] = False
