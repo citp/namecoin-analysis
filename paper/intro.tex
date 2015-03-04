@@ -9,11 +9,21 @@ The above three properties --- security, user-chosen names, and decentralization
 
 Cryptocurrency technology provides a way to square Zooko's triangle. Put simply, the block chain is a global, distributed data structure that can be repurposed as a directory. {\em Miners} execute a consensus protocol to resolve disputes about the state of the system and are incentivized to do so by mining rewards they receive in exchange for their participation. As long as a majority of miners --- weighted by computing power --- follow the protocol, every user will see a consistent view of the directory when they query it. This in turn gives the system, and hence the underlying currency, economic value, making miners' actions profitable to them.
 
-{\em Namecoin} is a cryptocurrency that realizes a decentralized namespace. [Basic details: altcoin, first fork of bitcoin, updates, transfers, different types of fees.]
+{\em Namecoin} is a cryptocurrency that realizes a decentralized namespace. [Basic details: altcoin, first fork of bitcoin, updates, transfers, different types of fees, different applications --- .bit and OneName.]
 
 Namecoin is a reasonable solution to the technical challenges of decentralized namespaces. However, there are also economic challenges. These arise from the fact that even though namespaces have an infinite number of names, the human memorability requirement means that names are scarce. Allocating these names to users is therefore a mechanism-design challenge. {\em The central thesis of this work is that this mechanism design challenge is far harder than realized.} A system that gets it wrong may ``work" in a narrow technical sense, but may not be useful to real users.
 
+Specifically, there are several crucial questions to consider: how do we model the economic behavior of the users of a namespace, and what are the goals of mechanism design for namespaces? How well does Namecoin succeed at attaining these goals, and what are its limitations? If Namecoin is not the ideal design, can we analyze the design space as a guide to the creators of future decentralized namespaces?
 
+Along the above lines, we make the following contributions. We begin by proposing a model of utility of different names to different participants, and articulating desiderata of a decentralized namespace in terms of this utility function. \hi{elaborate}.
+
+The central contribution of this paper is a thorough empirical analysis of the Namecoin ecosystem. We develop a series of criteria based on the block chain, network behavior, as well as content to distinguish active websites from parked or squatted domains. This allows us to iteratively filter our dataset of around 200,000 registered names in Namecoin, leaving a mere \hi{N} active websites.
+
+We then delve deeper into the economics of names. Namecoin has a built-in ability to transfer domain names, which is a secure way to trade them using the block chain. However, it is not obvious which transactions correspond to such sales, as opposed to regular name updates. We develop a novel analytic technique to distinguish the two types of transactions and find evidence for at most \hi{M} transactions in the entire history of Namecoin that may represent sales of domains. Of course, it is possible that most sales happen off the block chain, but there doesn't appear to be a widely known marketplace for Namecoin domains.
+
+Next, we develop a model for estimating the value of a name based on the meager observations we can make on the block chain about how names are treated by their owners. We posit that several characteristics such as a name being registered early in Namecoin's history and being re-registered quickly after expiry are indicative of more valuable domains. 
+
+\hi{TODO: finish}
 
 \section{Background}
 \label{sec:background}
