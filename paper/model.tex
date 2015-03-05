@@ -15,7 +15,7 @@ The scarcity of names makes the design of namespaces challenging. But it also ma
 
 {\bf Squatting.} Even though names are scarce, it's not obvious what ``squatting'' means. After all, material goods are scarce, but we don't usually characterize car owners as squatting on them. The difference is that names have (vastly) different utility to different users. A squatted name is one that is owned by a user whose utility for that name is close to zero (or very small compared to the user who has the most utility for that name), purchased in hopes of selling to another user whose utility is higher.
 
-Is squatting a problem for the system? This is a tricky question. If squatting exists merely because one side of the primary market is an algorithm and doesn’t charge market price, then squatters could be seen as analogous to brokers or ticket scalpers. Such agents are sometimes considered to perform a useful market function \cite{}, or at least tolerated \cite{}, but not considered an existential threat to the functioning of the market.
+Is squatting a problem for the system? This is a tricky question. If squatting exists merely because one side of the primary market is an algorithm and doesn't charge market price, then squatters could be seen as analogous to brokers or ticket scalpers. Such agents are sometimes considered to perform a useful market function \cite{}, or at least tolerated \cite{}, but not considered an existential threat to the functioning of the market.
 
 On the other hand, squatters can be viewed as analogous to land speculators. This analogy is supported by the fact that names, like land but unlike tickets, are not fungible. The speculator may have zero utility for a name and makes no use of the name himself; he hopes that demand for a name will rise in the future, and may therefore not sell to a buyer who has a positive utility today. This could lead to a market failure in a few ways. The uncertainty around future demand means that some names may be squatted indefinitely, while legitimate users may end up with sub-optimal names. If most valuable names are locked up by squatters, it may prevent the growth of the sytem, in turn preventing the growth in market price for names that speculators are hoping for. Land speculation has also been criticized as contributing to a market failure \cite{archer73}. 
 
@@ -23,15 +23,16 @@ On the other hand, squatters can be viewed as analogous to land speculators. Thi
 In this view, squatting may exist and may be problematic even if the primary market is able to discover the market price. But if the primary market is algorithmic, it only exacerbates the squatting problem.
 
 
-{\bf Time-varying preferences.} 
+{\bf Complexity of the utility function.} 
 Our argument above is essentially that utility functions are time-varying. This is particularly relevant to cryptocurrency-based namespaces, since they need to ``bootstrap,'' \hi{[explain]} and many users may have a zero or negligible utility for all names until they decide to participate in the namespace at all.
 
-When preferences are time invariant, we may state the goal of the system as ownership of each domain by the user with the maximum utility (or willingness to pay) for that domain, as long as that value is above some threshold. We can easily realize this by making the primary market a second-price auction with a reserve price. No secondary market would be necessary. \hi{[Emphasize that time-invariance of preferences is an oversimplification and this solution would be absurd in a real system.]}
+Another aspect of complexity of the utility function is diminishing marginal utility. A user named John Smith may want either the name \textsf{JohnSmith} or \textsf{john-smith} but not necessarily both. Time-variation and diminishing marginal utility make the mechanism design problem very tricky.
 
+Suppose, to the contrary, that utility functions are time invariant, and utility functions of a user for different names are independent. Then we may state the goal of the system as ownership of each domain by the user with the maximum utility (or willingness to pay) for that domain, as long as that value is above some threshold. We can easily realize this by making the primary market a second-price auction with a reserve price. No secondary market would be necessary.
 
+Of course, this is oversimplified. Let's add diminishing marginal utility to this model. Suppose there are 10 John Smiths in the world and 10 variations of the name \textsf{JohnSmith}. A 10x10 matrix describes the utility of each user for each name. Further, none of these users has any utility for more than one name. Now we can state a welfare-maximization goal of finding the assignment of names to users that maximizes the sum of each user's utility for his assigned name, which translates to a maximum weighted graph matching problem. Or we could be happy with a Pareto-efficient assignment; since this is one-sided market (names aren't agents), this is the house allocation problem. This shows that even in a highly simplified setting with a finite number of names and the same number of users, the mechanism design question is very tricky.
 
-
-With time-varying preferences it is unclear if we can unambiguously state a goal for the system. The harder we make it for a user to hold on to a purchased name, the easier it becomes for an adversary to ``seize'' a name (see below).
+When we add time-varying preferences to the model, it is unclear if we can even formally state a goal for the system. The harder we make it for a user to hold on to a purchased name, the easier it becomes for an adversary to ``seize'' a name (see below).
 
 At any rate, the fact that preferences are time varying appears to be part of the reason that names in Namecoin expire and must be renewed; in effect, they are leased rather than purchased outright.
 
