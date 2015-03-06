@@ -17,8 +17,6 @@ In a nutshell, the agent implemented by a namespace initially owns all names and
 
 The most straightforward implementation of a secondary market is to leave it entirely external to the system. This is the approach taken by Namecoin, but again variety of choices are possible. We elaborate in Section \ref{sec:design}.
 
-{\bf Primary market pricing.} 
-
 {\bf Squatting.} Even though names are scarce, it's not obvious what ``squatting'' means. After all, material goods are scarce, but we don't usually characterize car owners as squatting on them. The difference is that names have (vastly) different utility to different users. A squatted name is one that is owned by a user whose utility for that name is close to zero (or very small compared to the user who has the most utility for that name), purchased in hopes of selling to another user whose utility is higher.
 
 Is squatting a problem for the system? This is a tricky question. If squatting exists merely because one side of the primary market is an algorithm and doesn't charge market price, then squatters could be seen as analogous to brokers or ticket scalpers. Such agents are sometimes considered to perform a useful function as market makers \cite{}, or at least tolerated \cite{}, but not considered an existential threat to the functioning of the market.
