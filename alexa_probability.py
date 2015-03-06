@@ -7,10 +7,11 @@ import pdb
 
 import numpy as np
 import matplotlib.pyplot as plt
-import tldextract
 
 from common import getDictSubset
 from nameHistory import getMaxHeight
+
+np.seterr("raise")
 
 def alexaRanks():
     # failedDomains = []
@@ -24,6 +25,30 @@ def alexaRanks():
             bitDomain = intern("d/" + parsed_url.lower())
             domains.append(bitDomain)
     return domains
+
+def moving_average(a, n=3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
+def variable_window_moving_average(x):
+    cumulative = np.cumsum(x, dtype=float)
+    ret = np.zeros(int((4/5) * (len(cumulative) - 1)))
+    for i in range(len(ret)):
+        lower = int((3/4) * (i + 1))
+        upper = int((5/4) * (i + 1))
+        ret[i] = (cumulative[upper] - cumulative[lower]) / (upper - lower)
+    return ret
+
+# def variable_window_moving_average(x):
+#     cumulative = np.cumsum(x, dtype=float)
+#     ret = np.zeros(int((3/4) * (len(cumulative) - 1)))
+#     for i in range(len(ret)):
+#         lower = int((2/3) * (i + 1))
+#         upper = int((4/3) * (i + 1))
+#         ret[i] = (cumulative[upper] - cumulative[lower]) / (upper - lower)
+#     return ret
+        
 
 alexa_ranks = alexaRanks()
 # Swap keys and values
@@ -47,6 +72,17 @@ valid_names = None
 names = set(name for name in active_bit_names.keys())
 active_bit_names = None
 registered = [alexa_name in names for alexa_name in alexa_ranks]
-names = None
-alexa_ranks = None
+
+
+averaged = variable_window_moving_average(registered)
 pdb.set_trace()
+plt.plot(range(1, len(averaged) + 1), averaged)
+plt.ylim((0, 1.05))
+plt.xscale("log")
+
+# averaged = moving_average(registered, 10000)
+# plt.plot(range(1, len(averaged) + 1), averaged)
+
+# cumulative_prob = np.cumsum(registered) / np.array(range(1, len(registered) + 1))
+# plt.plot(range(1, len(registered) + 1), cumulative_prob)
+plt.show()
