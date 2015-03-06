@@ -2,9 +2,17 @@
 
 \subsection{DNS Records}
 
-%In order to support DNS lookups, Namecoin provides a specification that allows for the support of most DNS record types. A name's configuration is stored in a JSON dictionary object which is placed in a name's value. Domain's can be configured in a number of different ways. The main methods are directly setting one of more IP (or IPv6) addresses or setting one or more secondary name-servers which hold information about a domain. Additionally records can link a name to a number of peer-to-peer inter
+In order to support DNS lookups, Namecoin provides a specification that allows for the support of most DNS record types. A name's configuration is stored in a JSON dictionary object which is placed in a name's value. Domain's can be configured in a number of different ways. The main methods are directly setting one of more IP (or IPv6) addresses or setting one or more secondary name-servers which hold information about a domain. Additionally records can link a name to a number of hidden services like .onion\cite{onion} and .i2p\cite{i2p}.
 
 Namecoin supports a number of different name resolution methods. Different methods have different properties and thus it is interesting to inspect how people are setting up their domains. The vast majority of people are pointing their domains directly to an address. This includes people using IP, IPv6, and Tor. This is by far the most secure method since the IP address is protected directly with blockchain security. A user can simply look up a name in the blockchain and immediately be linked to a server. However, this security comes at the cost of flexibility since the server is directly encoded in the blockchain. and can not be changed without an update.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\columnwidth]{figures/squatters2}
+  \caption{Namecoin Name Registration Protocol}
+  \label{fig:registration}
+\end{figure}
+
 
 \begin{table}[t]
 \begin{tabular}{ll}
@@ -28,6 +36,7 @@ Total              & 10019
 The much more flexible configuration, used by a large number of people as well, is nameserver delegation. Rather than directly listing an IP address in the blockchain, one or more nameservers are listed. This way a name owner can update it's IP address without modifying the blockchain. However this is insecure delegation since Namecoin can not enforce that the server provide everyone with the same content. Additionally if a nameserver is listed with a hostname rather than and IP address, a standard DNS lookup must occur. This lookup is very susceptible to attack and thus not a strong security option. However many more people are using nameserver URLs rather than IPs.
 
 \subsection{Empirical Study}
+\label{domainbreakdown}
 
 \begin{table}[t]
 \begin{tabular}{ll}
@@ -62,3 +71,17 @@ Out of the remaining sites, many had very small amounts of content consisting of
 These 223 pages make up the only websites reachable through .bit domain names which have real content on them at the time of this analysis. This represents the value of .bit domains to people who can visit them today. We are further interested in the subset of these pages which don't come from a server that is accessible through a standard ICANN TLD as well.  83 of the pages directly redirect the user to a standard domain and 111 were manually identified as pointing to the same site as a standard domain.
 
 We finished our analysis with 29 pages remaining. These pages represent the .bit unique content available.
+
+\subsection{Detecting Squatters}
+
+Names are owned by individual addresses rather than by identities and it is common practice to keep each purchased name under a different address. Thus it is difficult to assess how many names a single person owns. However many squatters are easily identified through the values they set on names they own. Since there is no built-in mechanism for the marketing and sale of names built into Namecoin, squatters use the values of names they own to display contact information. This information generally comes in the form of either contact information stored directly in the value of a name, or contact information stored on the IP address to which the name resolves.
+
+This behavior provides us with an easy facility to track the presence of squatters since a squatter's contact information is generally constant among all the names he owns. Thus evaluating the frequency of values on the blockchain at any given time, we can measure the rate of squatters compared to regular users.
+
+There is no clear method for deciding exactly of often a value has to occur in order to assume a squatter has been detected. However even the coarsest grained approach displays the massive amount of squatting on the blockchain. Simply observing the 196023 currently active names, reveals that there are only 34361 unique values.
+
+\subsection{Categorizing Squatter Name Decisions}
+
+As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and through this try to interpret the decisions these squatters have made. Surprisingly squatters do no follow many obvious strategies of name selection.
+
+STUB
