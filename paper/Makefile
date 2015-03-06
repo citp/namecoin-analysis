@@ -9,6 +9,8 @@ GNUPLOT:= gnuplot
 SOURCES=$(NAME)-namecoin.tex \
 	abstract.tex \
 	intro.tex \
+	background.tex \
+	model.tex \
 	methods.tex \
 	analysis.tex \
 	related.tex \
