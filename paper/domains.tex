@@ -13,6 +13,7 @@ We investigate the balance between squatters and users in the .bit subspace. As 
   \label{fig:percentSquatter}
 \end{figure}
 
+
 Namecoin possesses the same pseudoanonymity properties as Bitcoin and thus it is difficult to group names by their owner. Names are owned by individual addresses rather than by identities and it is common practice to keep each purchased name under a different address. Thus it is difficult to assess how many names a single person owns. However many squatters are easily identified through the values they set on names they own. Since there is no built-in mechanism for the marketing and sale of names built into Namecoin, squatters use the values of names they own to display contact information. This information generally comes in the form of either contact information stored directly in the value of a name, or contact information stored on the IP address to which the name resolves.
 
 This behavior provides us with an easy facility to track the presence of squatters since a squatter's contact information is generally constant among all the names he owns. Thus evaluating the frequency of values on the blockchain at any given time, we can measure the rate of squatters compared to regular users.
@@ -90,4 +91,11 @@ As we have seen, many individual squatters buy up very large numbers of domains.
   \includegraphics[width=\columnwidth]{figures/alexa_probability}
   \caption{The probability that a name that shows up on the Alexa top 1 million rank is registered given by the rank of the name.}
   \label{fig:alexa_probability}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/name_length_histogram}
+  \caption{The number of Namecoin names registered as a function of name length.}
+  \label{fig:name_length_histogram}
 \end{figure}
