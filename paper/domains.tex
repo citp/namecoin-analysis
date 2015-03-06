@@ -13,10 +13,11 @@ We investigate the balance between squatters and other users in the .bit subspac
   \label{fig:percentSquatter}
 \end{figure}
 
-
 Namecoin possesses the same pseudonymity properties as Bitcoin and thus it is difficult to group names by their owner. Names are owned by individual addresses rather than by identities and it is common practice to keep each purchased name under a different address. Thus it is difficult to assess how many names a single person owns. 
 
 However, many squatters are easily identified through the values they set on names they own. Since there is no built-in functionality for the listing and sale of names in Namecoin, squatters use the values of names they own to display contact information. This information generally comes in the form of either contact information stored directly in the value of a name, or contact information stored on the IP address to which the name resolves.  We observed that a squatter's contact information is generally constant among all the names he owns. Thus, by measuring the extent of duplication values on the blockchain, we can estimate the rate of squatters compared to regular users.
+
+Regular .bit domain owners are unlikely to use values that are highly replicated. The value of a domain points to the individual server and owner and thus must be mostly unique. The only repetition that may occur in this circumstance is when multiple names resolve at the same point. This could occur when a single DNS server is resolving a large number of names to different websites. However from our analysis in Section \ref{domainbreakdown}, we see that this does not happen currently.
 
 There is no clear method for deciding exactly how often a value has to occur in order to assume a squatter has been detected. However even the coarsest grained approach displays the massive amount of squatting on the blockchain. Simply observing the 196023 currently active names, reveals that there are only 34361 unique values.
 
