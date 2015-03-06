@@ -22,8 +22,8 @@ with open("plotNameLength.txt", "r") as histogram_file:
 # plt.hist(list(histogram.elements()), bins = len(histogram.items()))
 plt.hist(list(histogram.elements()), bins = range(0, 40),
          color = "#9ebcda")
-plt.title("Frequency of Name Length", y = 1.02)
-plt.xlabel("Name Length")
-plt.ylabel("Frequency")
+# plt.title("Frequency of Name Length", y = 1.02)
+plt.xlabel(r"\textbf{Name Length}")
+plt.ylabel(r"\textbf{Frequency}")
 plt.savefig("name_length_histogram.eps")
 # plt.show()
