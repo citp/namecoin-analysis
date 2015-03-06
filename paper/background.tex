@@ -3,7 +3,7 @@
 
 In this section we cover the background of Namecoin. We begin by looking at the history of the cryptocurrency and then explain why a block chain can be used for our definition of a namespace. We then proceed to discuss the technical design of Namecoin and the mechanisms used in the design. We conclude this section with a discussion about the applications of Namecoin.
 
-{\bf A note about the term 'namespace'.} In computer science, a namespace is simply a container for a set of names, so that names in a single namespace must be unique but the same name can exist in different namespaces. We have chosen to use the term in a related but different way: it's a {\em system} that includes client and server software, users, a mechanism, and so on. In fact, Namecoin contains namespaces in the computer science sense, which we term {\em subspaces} in this paper.
+{\bf A note about the term `namespace'.} In computer science, a namespace is simply a container for a set of names, so that names in a single namespace must be unique but the same name can exist in different namespaces. We have chosen to use the term in a related but different way: it's a {\em system} that includes client and server software, users, a mechanism, and so on. In fact, Namecoin contains namespaces in the computer science sense, which we term {\em subspaces} in this paper.
 
 \subsection{History}
 
@@ -26,7 +26,7 @@ One use case for a block chain is a tamper-evident log. That is, it can be used 
 {\bf Block chain security.}
 The value and stability of a cryptocurrency are directly related to the amount of proof-of-work involved in the calculations of the blocks because this work is what keeps the data distributed and secure in the tamper-evident block chain. For both Bitcoin and Namecoin, the proof-of-work is shown by calculating the hash of a new block and a random nonce over and over until the calculated hash has a certain number of leading zeros. The number of leading zeros required by the hash is referred to as the difficulty threshold. Namecoin enjoys a very high difficulty threshold for the proof-of-work because it is similar to Bitcoin and supports ``merge mining'' with Bitcoin. This means that miners who are mining Bitcoin can also choose to mine Namecoin at the same time with no extra work. Essentially, this is because the miner is using their computational power to solve a cryptographic puzzle that satisfies the proof-of-work for both block chains at the same time. This is advantageous for the miners because they are rewarded with coins from both systems, and helps Namecoin because it gives the Namecoin network a vastly increased amount of hash power over what it would have if it did not support merged mining. The high hash power and difficulty of the cryptographic challenge on the Namecoin network increases the stability of the system, providing resilience to a 51\% attack and other threatening behaviors from malicious miners.
 
-\subsection{Technical Details of Names}
+\subsection{Technical details of names}
 
 In this subsection and the next, we present details of the Namecoin, separating the technical solution from the mechanism design choices. 
 
@@ -52,7 +52,7 @@ In order for this transaction to be valid, a miner will verify that the {\tt nam
 {\bf NAME\_UPDATE.}
 The third and final new operation in Namecoin is the {\tt NAME\_UPDATE} operation. Again, this operation's arguments (the {\tt name} and {\tt newValue}) are stored in the scriptPubKey of a special transaction. This transaction must have as input a {\tt NAME\_FIRSTUPDATE} or {\tt NAME\_UPDATE} output with the same {\tt name}. This operation has three uses: updating, renewing and trading a name. If the user wants to change the {\tt value} associated with a given {\tt name}, they will update {\tt name} with this operation, providing a {\tt newValue}. If names can expire, as they do in Namecoin, then this operation can also be used to renew a name by providing a {\tt newValue} that is the same as the old {\tt value}. In either of these cases, the user will use an address they control as an output of the transaction. The final reason to make a {\tt NAME\_UPDATE} transaction is to trade the special coin to another user. In this case, the user will put, as an output, one of the other user's addresses instead of their own. Once the transaction resolves, the other user will have control over the special coin and can change the value to whatever they deem fit. Because the ownership of {\tt name} is associated with the ownership of the special coin, if the buyer is paying for the name with Namecoins, the exchange between the payment and the name can be atomic (meaning they happen in the same transaction and either are only valid if the other is as well). 
 
-\subsection{Mechanism Design}
+\subsection{Mechanism design}
 
 
 {\bf Fees.}
@@ -61,7 +61,7 @@ Namecoin has been implemented with various fees and protocols to incentivize the
 {\bf Expiration.}
 Namecoin has an expiration time for names. Originally, the time period for a name to expire was 12,000 blocks, but by March 2012, the expiration period was increased to 36,000 blocks (which comes out to about 250 days). If a particular {\tt name} hasn't been mentioned in a {\tt NAME\_FIRSTUPDATE} or {\tt NAME\_UPDATE} in 36,000 blocks, the name becomes available again for any user to claim with {\tt NAME\_NEW} and {\tt NAME\_FIRSTUPDATE}. Similarly, a {\tt NAME\_UPDATE} must cite a {\tt NAME\_FIRSTUPDATE} or {\tt NAME\_UPDATE} that is less than 36,000 blocks old as input.
 
-{\bf Changing the Protocol.}
+{\bf Changing the protocol.}
 Changing the protocol in a cryptocurrency requires a ``hard fork'' or a ``soft fork'' depending on the extent of the change. In a mature system like Bitcoin, this is very difficult. In a fledgling system like Namecoin, however, it is much easier has happened multiple times. Both the addition of merge mining with Bitcoin, and the increase in expiration length were not initially in the design of Namecoin and required hard-forking changes. In order to make these changes, the Namecoin community decided on arbitrary blocks at which point the new protocol would be enforced. For example, up to block 19,199 blocks that were merge mined with Bitcoin were not allowed into the Namceoin block chain, but starting on block 19,200 they were. 
  
 \subsection{Applications}
