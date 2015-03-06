@@ -55,7 +55,7 @@ Namecoin supports a number of different name resolution methods. Different metho
 % cite DNS lookup attack
 The much more flexible configuration, used by a large number of people as well, is name server delegation. Rather than directly listing an IP address in the blockchain, one or more name servers are listed. This way a name owner can update it's IP address without modifying the blockchain. However this is insecure delegation since Namecoin can not enforce any security properties regarding the action of the external name server. Additionally if a name server is listed with a hostname rather than and IP address, a standard DNS lookup must occur, linking Namecoin with standard DNS.
 
-\subsection{Empirical Study}
+\subsection{Domain Content Analysis}
 \label{domainbreakdown}
 
 \begin{table}[t]
@@ -84,6 +84,8 @@ Out of the remaining sites, many had very small amounts of content consisting of
 These 223 pages make up the only websites reachable through .bit domain names which have real content on them at the time of this analysis. This represents the value of .bit domains to people who can visit them today. We are further interested in the subset of these pages which don't come from a server that is accessible through a standard ICANN TLD as well.  83 of the pages directly redirect the user to a standard domain and 111 were manually identified as pointing to the same site as a standard domain.
 
 We finished our analysis with 29 pages remaining. These pages represent the .bit unique content available.
+
+Our approach to analyzing content suffers from a few limitations. First of all we only queried the main domain over port 80, thus if any of the servers only respond to subdomains or only serve content over HTTPS, they are not included. Additionally when we detect how much content is on each page, we do not follow links and thus content could be hidden behind links. However despite this limitations we believe that we have missed very few legitimate domains.
 
 \subsection{Categorizing Squatter Name Decisions}
 
