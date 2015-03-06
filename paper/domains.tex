@@ -1,0 +1,64 @@
+\section{Domain Analysis}
+
+\subsection{DNS Records}
+
+%In order to support DNS lookups, Namecoin provides a specification that allows for the support of most DNS record types. A name's configuration is stored in a JSON dictionary object which is placed in a name's value. Domain's can be configured in a number of different ways. The main methods are directly setting one of more IP (or IPv6) addresses or setting one or more secondary name-servers which hold information about a domain. Additionally records can link a name to a number of peer-to-peer inter
+
+Namecoin supports a number of different name resolution methods. Different methods have different properties and thus it is interesting to inspect how people are setting up their domains. The vast majority of people are pointing their domains directly to an address. This includes people using IP, IPv6, and Tor. This is by far the most secure method since the IP address is protected directly with blockchain security. A user can simply look up a name in the blockchain and immediately be linked to a server. However, this security comes at the cost of flexibility since the server is directly encoded in the blockchain. and can not be changed without an update.
+
+\begin{table}[t]
+\begin{tabular}{ll}
+Type of Resolution & Count \\ \hline
+Nameserver URL     & 3359  \\
+Nameserver IP      & 175   \\
+Single IP          & 6304  \\
+Multiple IP        & 3     \\
+Single IPv6        & 3     \\
+Multiple IPv6      & 1     \\
+Tor                & 12    \\
+Alias              & 27    \\
+Only Subdomains    & 135   \\ \hline
+Total              & 10019
+\end{tabular}
+\end{table}
+
+
+%insecure delegation like DNSSEC
+% cite DNS lookup attack
+The much more flexible configuration, used by a large number of people as well, is nameserver delegation. Rather than directly listing an IP address in the blockchain, one or more nameservers are listed. This way a name owner can update it's IP address without modifying the blockchain. However this is insecure delegation since Namecoin can not enforce that the server provide everyone with the same content. Additionally if a nameserver is listed with a hostname rather than and IP address, a standard DNS lookup must occur. This lookup is very susceptible to attack and thus not a strong security option. However many more people are using nameserver URLs rather than IPs.
+
+\subsection{Empirical Study}
+
+\begin{table}[t]
+\begin{tabular}{ll}
+Active d/ Names     & 141422  \\
+JSON Dictionary      & 48894   \\
+Valid DNS          & 10118  \\
+Curlable        & 5374     \\
+Not Squatter        & 745     \\
+Without Duplicates      & 455     \\
+Without Errors              & 278    \\
+With Content              & 223    \\
+Without ICANN hostname   & 29   \\
+\end{tabular}
+\end{table}
+
+In order to produce an accurate understanding of the current landscape of Namecoin domain names, we explore the status of the d namespace. Our goal is to measure content reachable through .bit domain names. The d/ namespace contains 141422 active names. We explore the content that these names hold.
+
+We want to analyze web content being served by .bit domains, but trying to contact every single one of the 141422 active names would be a difficult and time consuming task. In order to cull this large number we look at the subset of names that have a chance of resolving. Simply limiting our search to only include names with values that are JSON dictionaries limits us to 48894 names.
+
+To further reduce the number of domains we must query, we filtered these entries to include only those that have DNS information that could allow resolution of the domain. The Namecoin DNS Specification lists a number of fields which can be used to link a name with an IP address. We only queried names which included at least one of these fields. Additionally servers were removed if they pointed to a local or loopback IP address. After this we were left with 10118 domains.
+
+We attempted to download the http front page of each of these 10118 names. 4645 of these domains were unreachable or didn't serve web content leaving us with only 5374 domains which present any response.
+
+At this point we moved to looking at the content of server responses. Immediately noticeable was the fact that 4629 of these names pointed came from 3 different squatters. These domains held nothing of value and caused massive inflation in our reachable domain count.
+
+Without the squatters, we had 745 viable domains. However many of these pages included identical content which does not add value to the system after removed 290 of such duplicates we had 455 domains left.
+
+At this point we started inspecting the actual content of the webpages. A large number of them were either error responses from the server or default pages from various servers. Neither of these types of pages are usable content. Removing the 177 of these left us with 278 domains.
+
+Out of the remaining sites, many had very small amounts of content consisting of only a few words on a blank page like, "Welcome to mysite.bit." These pages, though valid uses of Namecoin, do not provide any utility to a visitor. Thus we decided to look at only pages consisting of 14 or more words and images which brought us down to 223 pages.
+
+These 223 pages make up the only websites reachable through .bit domain names which have real content on them at the time of this analysis. This represents the value of .bit domains to people who can visit them today. We are further interested in the subset of these pages which don't come from a server that is accessible through a standard ICANN TLD as well.  83 of the pages directly redirect the user to a standard domain and 111 were manually identified as pointing to the same site as a standard domain.
+
+We finished our analysis with 29 pages remaining. These pages represent the .bit unique content available.
