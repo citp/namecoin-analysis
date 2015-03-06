@@ -1,7 +1,11 @@
 \section{Related Work}
 \label{sec:related}
 
-The ability to publish messages to the block chain immediately allows a variety of applications. Physical property, shares of stocks, bonds, or any other real asset can be digitally represented on the block chain. Overlay protocols such as Mastercoin and Colored Coins specify a syntax and semantics for such digital representations \cite{mastercoinspec, rosenfeld2012overview}. CommitCoin allows for putting hash commitments on the Bitcoin block chain in order to timestamp data in a trustless manner \cite{clark2012commitcoin}. 
+In this related work we are interested in attempts besides Namecoin at decentralized cryptocurrency based DNS and more broadly in technologies that utilize the blockchain itself.
+
+Bitshares is another altcoin that includes proposals for a namespace as one of its goals \cite{bitsharesdns}. Emercoin recently emerged as a Namecoin competitor \cite{emercoin}. 
+
+More broadly, the ability to publish messages to the block chain immediately allows a variety of applications. Physical property, shares of stocks, bonds, or any other real asset can be digitally represented on the block chain. Overlay protocols such as Mastercoin and Colored Coins specify a syntax and semantics for such digital representations \cite{mastercoinspec, rosenfeld2012overview}. CommitCoin allows for putting hash commitments on the Bitcoin block chain in order to timestamp data in a trustless manner \cite{clark2012commitcoin}.
 
 There are a number of more complex applications that require additional primitives. Financial derivatives are contracts whose value depends, in some mutually agreed-upon way, on the price (or movements in price) of an underlying asset. Implementing derivatives of digital assets, then, requires user-defined logic (or scripts) for transaction validation. This can be accomplished via an altcoin with a flexible scripting language such as Ethereum \cite{ethereumwhitepaper}. Furthermore, since derivatives depend on prices, scripts that implement them require access to price feeds as input. Otherwise, it requires a trusted third party (known by a Bitcoin address) to regularly publish suitably encoded, signed price statements reflecting external reality. These can be published directly to the block chain or distributed off-chain and only added to the blockchain when needed to redeem an asset. More generally, such entities could publish any data feed representing news or other events.
 
