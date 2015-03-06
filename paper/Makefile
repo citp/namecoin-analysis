@@ -11,6 +11,7 @@ SOURCES=$(NAME)-namecoin.tex \
 	intro.tex \
 	background.tex \
 	model.tex \
+	domains.tex \
 	methods.tex \
 	analysis.tex \
 	related.tex \
