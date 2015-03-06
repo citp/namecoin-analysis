@@ -1,18 +1,33 @@
 \section{Domain Analysis}
 
+In this section we analyze the current state of .bit domains. We explore the system on multiple levels. We begin at the highest level, looking at the repetition of values in order to detect squatters. Next we look at how many .bit domains are set up with queryable values. Finally we actually visit these querable names and analyze the content we find there.
+
+\subsection{Detecting Squatters}
+
+We investigate the balance between squatters and users in the .bit subspace. As we discussed in \ref{sec:model}, namespace squatting is an important issue to understand. We look at Namecoin in order to get a realistic view on the proliferation of squatting.
+
+Namecoin possesses the same pseudoanonymity properties as Bitcoin and thus it is difficult to group names by their owner. Names are owned by individual addresses rather than by identities and it is common practice to keep each purchased name under a different address. Thus it is difficult to assess how many names a single person owns. However many squatters are easily identified through the values they set on names they own. Since there is no built-in mechanism for the marketing and sale of names built into Namecoin, squatters use the values of names they own to display contact information. This information generally comes in the form of either contact information stored directly in the value of a name, or contact information stored on the IP address to which the name resolves.
+
+This behavior provides us with an easy facility to track the presence of squatters since a squatter's contact information is generally constant among all the names he owns. Thus evaluating the frequency of values on the blockchain at any given time, we can measure the rate of squatters compared to regular users.
+
+There is no clear method for deciding exactly how often a value has to occur in order to assume a squatter has been detected. However even the coarsest grained approach displays the massive amount of squatting on the blockchain. Simply observing the 196023 currently active names, reveals that there are only 34361 unique values.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\columnwidth]{figures/squatters}
+  \caption{Percent of names considered squatted}
+  \label{fig:percentSquatter}
+\end{figure}
+
+In figure \ref{fig:percentSquatter} we examine what percentage of current .bit names are squatted. We sorted all of the values that occur by the number of times they occur. As the graph threshold moves along the x-axis, the sum of only values that occur more than n times is show. The graph has a very sharp initial drop as we remove all names with values that occur only a few times. This leaves the majority of domains to drop off very slowly as we remove bigger and bigger squatters. From the graph, it appears safe to say that over 70\% of .bit domains are held by squatter.
+
 \subsection{DNS Records}
+
+We now examine how .bit domains are used by legitimate users. Only 10019 out of the 141422 .bit domains make any attempt to resolve to IP addresses. Out of these a variety of types of IP resolution are employed.
 
 In order to support DNS lookups, Namecoin provides a specification that allows for the support of most DNS record types. A name's configuration is stored in a JSON dictionary object which is placed in a name's value. Domain's can be configured in a number of different ways. The main methods are directly setting one of more IP (or IPv6) addresses or setting one or more secondary name-servers which hold information about a domain. Additionally records can link a name to a number of hidden services like .onion\cite{onion} and .i2p\cite{i2p}.
 
 Namecoin supports a number of different name resolution methods. Different methods have different properties and thus it is interesting to inspect how people are setting up their domains. The vast majority of people are pointing their domains directly to an address. This includes people using IP, IPv6, and Tor. This is by far the most secure method since the IP address is protected directly with blockchain security. A user can simply look up a name in the blockchain and immediately be linked to a server. However, this security comes at the cost of flexibility since the server is directly encoded in the blockchain. and can not be changed without an update.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\columnwidth]{figures/squatters2}
-  \caption{Namecoin Name Registration Protocol}
-  \label{fig:registration}
-\end{figure}
-
 
 \begin{table}[t]
 \begin{tabular}{ll}
@@ -33,16 +48,14 @@ Total              & 10019
 
 %insecure delegation like DNSSEC
 % cite DNS lookup attack
-The much more flexible configuration, used by a large number of people as well, is nameserver delegation. Rather than directly listing an IP address in the blockchain, one or more nameservers are listed. This way a name owner can update it's IP address without modifying the blockchain. However this is insecure delegation since Namecoin can not enforce that the server provide everyone with the same content. Additionally if a nameserver is listed with a hostname rather than and IP address, a standard DNS lookup must occur. This lookup is very susceptible to attack and thus not a strong security option. However many more people are using nameserver URLs rather than IPs.
+The much more flexible configuration, used by a large number of people as well, is name server delegation. Rather than directly listing an IP address in the blockchain, one or more name servers are listed. This way a name owner can update it's IP address without modifying the blockchain. However this is insecure delegation since Namecoin can not enforce any security properties regarding the action of the external name server. Additionally if a name server is listed with a hostname rather than and IP address, a standard DNS lookup must occur, linking Namecoin with standard DNS.
 
 \subsection{Empirical Study}
 \label{domainbreakdown}
 
 \begin{table}[t]
 \begin{tabular}{ll}
-Active d/ Names     & 141422  \\
-JSON Dictionary      & 48894   \\
-Valid DNS          & 10118  \\
+Valid DNS          &  10019  \\
 Curlable        & 5374     \\
 Not Squatter        & 745     \\
 Without Duplicates      & 455     \\
@@ -52,13 +65,7 @@ Without ICANN hostname   & 29   \\
 \end{tabular}
 \end{table}
 
-In order to produce an accurate understanding of the current landscape of Namecoin domain names, we explore the status of the d namespace. Our goal is to measure content reachable through .bit domain names. The d/ namespace contains 141422 active names. We explore the content that these names hold.
-
-We want to analyze web content being served by .bit domains, but trying to contact every single one of the 141422 active names would be a difficult and time consuming task. In order to cull this large number we look at the subset of names that have a chance of resolving. Simply limiting our search to only include names with values that are JSON dictionaries limits us to 48894 names.
-
-To further reduce the number of domains we must query, we filtered these entries to include only those that have DNS information that could allow resolution of the domain. The Namecoin DNS Specification lists a number of fields which can be used to link a name with an IP address. We only queried names which included at least one of these fields. Additionally servers were removed if they pointed to a local or loopback IP address. After this we were left with 10118 domains.
-
-We attempted to download the http front page of each of these 10118 names. 4645 of these domains were unreachable or didn't serve web content leaving us with only 5374 domains which present any response.
+After understanding how people connect their names with IP addresses, we now explore what sorts of content is reachable through .bit domain names. We attempted to download the http front page of each of these 10019 domains over port 80. 4546 of these domains were unreachable or didn't serve web content leaving us with only 5374 domains which present any response.
 
 At this point we moved to looking at the content of server responses. Immediately noticeable was the fact that 4629 of these names pointed came from 3 different squatters. These domains held nothing of value and caused massive inflation in our reachable domain count.
 
@@ -71,14 +78,6 @@ Out of the remaining sites, many had very small amounts of content consisting of
 These 223 pages make up the only websites reachable through .bit domain names which have real content on them at the time of this analysis. This represents the value of .bit domains to people who can visit them today. We are further interested in the subset of these pages which don't come from a server that is accessible through a standard ICANN TLD as well.  83 of the pages directly redirect the user to a standard domain and 111 were manually identified as pointing to the same site as a standard domain.
 
 We finished our analysis with 29 pages remaining. These pages represent the .bit unique content available.
-
-\subsection{Detecting Squatters}
-
-Names are owned by individual addresses rather than by identities and it is common practice to keep each purchased name under a different address. Thus it is difficult to assess how many names a single person owns. However many squatters are easily identified through the values they set on names they own. Since there is no built-in mechanism for the marketing and sale of names built into Namecoin, squatters use the values of names they own to display contact information. This information generally comes in the form of either contact information stored directly in the value of a name, or contact information stored on the IP address to which the name resolves.
-
-This behavior provides us with an easy facility to track the presence of squatters since a squatter's contact information is generally constant among all the names he owns. Thus evaluating the frequency of values on the blockchain at any given time, we can measure the rate of squatters compared to regular users.
-
-There is no clear method for deciding exactly of often a value has to occur in order to assume a squatter has been detected. However even the coarsest grained approach displays the massive amount of squatting on the blockchain. Simply observing the 196023 currently active names, reveals that there are only 34361 unique values.
 
 \subsection{Categorizing Squatter Name Decisions}
 
