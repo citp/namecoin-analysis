@@ -6,6 +6,7 @@ import csv
 import pdb
 
 import numpy as np
+from matplotlib import rc, rcParams
 import matplotlib.pyplot as plt
 
 from common import getDictSubset
@@ -75,14 +76,22 @@ registered = [alexa_name in names for alexa_name in alexa_ranks]
 
 
 averaged = variable_window_moving_average(registered)
-pdb.set_trace()
+
+rc('font', serif='Helvetica Neue') 
+rc('text', usetex='true') 
+rcParams.update({'font.size': 16})
+rcParams.update({'figure.autolayout': True})
 plt.plot(range(1, len(averaged) + 1), averaged)
-plt.ylim((0, 1.05))
 plt.xscale("log")
+plt.ylim((0, 1.05))
+plt.title("Probability Alexa top 1 million domain is registered", y=1.02)
+plt.xlabel("Alexa rank")
+plt.ylabel("Probability of being registered")
+plt.savefig("alexa_probability.eps")
 
 # averaged = moving_average(registered, 10000)
 # plt.plot(range(1, len(averaged) + 1), averaged)
 
 # cumulative_prob = np.cumsum(registered) / np.array(range(1, len(registered) + 1))
 # plt.plot(range(1, len(registered) + 1), cumulative_prob)
-plt.show()
+# plt.show()
