@@ -89,7 +89,7 @@ We finished our analysis with 28 pages remaining. These pages represent the .bit
 
 Our approach to analyzing content suffers from a few limitations. First of all we only queried the main domain over port 80, thus if any of the servers only respond to subdomains or only serve content over HTTPS, they are not included. Additionally when we detect how much content is on each page, we do not follow links and thus content could be hidden behind links. Despite these limitations we believe that we have missed very few legitimate domains.
 
-\subsection{Categorizing Squatter Name Decisions}
+\subsection{Examining Squatter Name Decisions}
 
 \begin{figure}[t]
   \centering
@@ -98,11 +98,13 @@ Our approach to analyzing content suffers from a few limitations. First of all w
   \label{fig:alexa_probability}
 \end{figure}
 
-As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and try to interpret the decisions these squatters have made.
+As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and try to interpret the decisions these squatters have made. Here we explore two potential measures of name desirability, one using Alexa ranking, and one using the length of the name.
 
 We can see from Figure \ref{fig:alexa_probability} and Figure \ref{fig:name_length_histogram} that there are patterns to the names that squatters have acquired. In Figure \ref{fig:alexa_probability}, we can see that squatters have claimed the majority of very high ranking Alexa sites.
 
 In Figure \ref{fig:name_length_histogram} we see that there is a preference for shorter names. Table \ref{table:names_available} shows that in fact all one and two character names are taken. It is not until we get to names with at least three characters are there names available to register. Beyond three characters, the combinatorial nature of name strings makes it infeasible to register all names of that length. There are more names with a length of 4 available than there are total names registered currently.
+
+Alexa ranking and name length are an exhaustive description of squatter behavoir. Future work would attempt to better model the valuation that squatters and other namespace participants put on names.
 
 
 \begin{figure}
