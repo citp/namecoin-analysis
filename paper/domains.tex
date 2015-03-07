@@ -79,15 +79,15 @@ After understanding how people connect their names with IP addresses, we explore
 
 Looking at the content of the servers' responses, we found that of the responsive 5374 domains, 4629 are owned by 3 different squatters. These domains serve nothing of value and caused massive inflation in our reachable domain count.
 
-Removing the squatters, we count 745 viable domains. However, many of these pages are mirrors of each other which does not add value to the system. After removing 290 such duplicates, 455 domains remained.
+Removing the squatters, we count 745 viable domains. However, many of these pages are mirrors or duplicates of each other. After removing 290 such duplicates, 455 domains remained.
 
-A large number of pages were either error responses from the server or default pages from various servers. Neither of these types of pages serve usable content. Removing these 177 domains left us with 278 domains.
+A large number of pages were either error responses from the server or default pages from various web servers. Neither of these can be considered useful content. There were 177 such domains, and removing them left us with 278 domains.
 
 Out of the remaining sites, many had very small amounts of content consisting of only a few words on a blank page like, "Welcome to mysite.bit." These pages, though valid uses of Namecoin, provide minimal utility to a visitor. Thus, we decided to look at only pages consisting of 15 or more words and images which brought us down to 222 domains.
 
-These 222 domains make up the only websites reachable through .bit domain names which have real content on them at the time of this analysis. We are further interested in the subset of these pages which don't come from a server that is accessible through a standard ICANN TLD as well.  83 of the pages directly redirect the user to a standard domain and 111 were manually identified as pointing to the same site as a standard domain.
+These 222 domains make up the only websites reachable through .bit domain names which have any real content on them at the time of this analysis. We are further interested in the subset of these pages which don't come from a server that is accessible through a standard ICANN TLD as well.  83 of the pages directly redirect the user to a standard domain and 111 were manually identified as pointing to the same site as a standard domain.
 
-This left us with 28 pages serving content that is uniquely available to .bit.
+This left us with 28 pages serving non-trivial content that is uniquely available via .bit.
 
 Our approach to analyzing content suffers from a few limitations. First of all we only queried the main domain over port 80, thus if any of the servers only respond to subdomains or only serve content over HTTPS, they are not included. Additionally when we detect how much content is on each page, we do not follow links and thus content could be hidden behind links. Despite these limitations we believe that we have missed very few legitimate domains.
 
