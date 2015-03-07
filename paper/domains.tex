@@ -1,15 +1,15 @@
 \section{Analysis of .bit domains}
-
+\label{sec:domains}
 In this section we analyze the current state of .bit domains. We explore the system on multiple levels. We begin at the highest level, looking at the repetition of values in order to detect squatters. Next we look at how many .bit domains are set up with query-able values. Finally we actually visit these query-able names and analyze the content we find there.
 
-\subsection{Detecting Squatters}
+\subsection{Detecting squatters}
 
 We investigate the balance between squatters and other users in the .bit subspace. As we discussed in \ref{sec:model}, namespace squatting is an important issue to understand. We look at Namecoin in order to get a realistic view on the proliferation of squatting.
 
 \begin{figure}
   \centering
   \includegraphics[width=0.9\columnwidth]{figures/squatters}
-  \caption{Percent of names considered squatted}
+  \caption{Number of Transfers based on squatter threshold}
   \label{fig:percentSquatter}
 \end{figure}
 
@@ -25,26 +25,26 @@ In figure \ref{fig:percentSquatter} we examine the fraction of current .bit name
 %As the graph threshold moves along the X-axis, the sum of only values that occur more than $n$ times is show. 
 The graph has a very sharp initial drop as we remove all names with values that occur only a few times. This leaves the majority of domains to drop off very slowly as we remove bigger and bigger squatters. Using a cut-off of $n=$\hi{[fill in]}, it appears safe to say that at least 70\% of .bit domains are held by squatters.
 
-\subsection{DNS Records}
+\subsection{DNS records}
 
 \begin{table}[t]
 \begin{tabular}{ll}
 Type of Resolution & Count \\ \hline
-Nameserver URL     & 3359  \\
-Nameserver IP      & 175   \\
-Single IP          & 6304  \\
-Multiple IP        & 3     \\
-Single IPv6        & 3     \\
+Nameserver URL     & 3200  \\
+Nameserver IP      & 148   \\
+Single IP          & 5848  \\
+Multiple IP        & 2     \\
+Single IPv6        & 2     \\
 Multiple IPv6      & 1     \\
-Tor                & 12    \\
-Alias              & 27    \\
-Only Subdomains    & 135   \\ \hline
-Total              & 10019
+Tor                & 9    \\
+Alias              & 23    \\
+Only Subdomains    & 2   \\ \hline
+Total              & 9354
 \end{tabular}
 \caption{.bit domain resolution methods}
 \end{table}
 
-We now examine how .bit domains are used by legitimate users. Only 10019 out of the 141422 .bit domains make any attempt to resolve to IP addresses. Out of these a variety of types of IP resolution are employed.
+We now examine how .bit domains are used by legitimate users. Only 9354 out of the 141422 .bit domains make any attempt to resolve to IP addresses. Out of these a variety of types of IP resolution are employed.
 
 In order to support DNS lookups, Namecoin provides a specification that allows for the support of most DNS record types. A name's configuration is stored in a JSON dictionary object which is placed in a name's value. Domain's can be configured in a number of different ways. The main methods are directly setting one of more IP (or IPv6) addresses or setting one or more secondary name-servers which hold information about a domain. Additionally records can link a name to a number of hidden services like .onion \cite{onion} and .i2p \cite{i2p}.
 
@@ -55,12 +55,13 @@ Namecoin supports a number of different name resolution methods. Different metho
 % cite DNS lookup attack
 The much more flexible configuration, used by a large number of people as well, is name server delegation. Rather than directly listing an IP address in the blockchain, one or more name servers are listed. This way a name owner can update its IP address without modifying the blockchain. However this is an insecure delegation since Namecoin can not enforce any security properties regarding the action of the external name server. Additionally if a name server is listed with a hostname rather than and IP address, a standard DNS lookup must occur, linking Namecoin with standard DNS.
 
-\subsection{Domain Content Analysis}
+\subsection{Domain content analysis}
 \label{domainbreakdown}
 
 \begin{table}[t]
 \begin{tabular}{ll}
-Valid DNS          &  10019  \\
+Criteria Applied & Count \\ \hline
+Valid DNS          &  9354  \\
 Curlable        & 5374     \\
 Not Squatter        & 745     \\
 Without Duplicates      & 455     \\
@@ -71,7 +72,7 @@ Without ICANN hostname   & 28   \\
 \caption{Reduction of domains to real content}
 \end{table}
 
-After understanding how people connect their names with IP addresses, we explored what sort of content is reachable through .bit domain names. We attempted to download the www front page of each of these 10019 domains over port 80 (http). 4546 of these domains were unreachable or didn't serve web content, which left us with only 5374 domains which present any response.
+After understanding how people connect their names with IP addresses, we explored what sort of content is reachable through .bit domain names. We attempted to download the www front page of each of these 9354 domains over port 80 (http). 3881 of these domains were unreachable or didn't serve web content, which left us with only 5374 domains which present any response.
 
 At this point we moved to looking at the content of server responses. Immediately noticeable was that out of the 5374 domains with server responses, 4629 are owned by 3 different squatters. These domains hold nothing of value and caused massive inflation in our reachable domain count.
 
