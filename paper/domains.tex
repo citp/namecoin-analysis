@@ -49,12 +49,12 @@ We now examine how .bit domains are used by legitimate users. Only 9354 out of t
 
 In order to support DNS lookups, Namecoin provides a specification that allows for the support of most DNS record types. A name's configuration is stored in a JSON dictionary object which is placed in a name's value. Domain's can be configured in a number of different ways. The main methods are directly setting one of more IP (or IPv6) addresses or setting one or more secondary name-servers which hold information about a domain. Additionally records can link a name to a number of hidden services like .onion \cite{onion} and .i2p \cite{i2p}.
 
-Namecoin supports a number of different name resolution methods. Different methods have different properties and thus it is interesting to inspect how people are setting up their domains. The vast majority of people are pointing their domains directly to an address. This includes people using IP, IPv6, and Tor. This is by far the most secure method since the IP address is protected directly with block chain security. A user can simply look up a name in the block chain and immediately be linked to a server. However, this security comes at the cost of flexibility since the server is directly encoded in the block chain, and can not be changed without an update.
+Namecoin supports a number of different name resolution methods. Different methods have different properties and thus it is interesting to inspect how people are setting up their domains. The vast majority of people are pointing their domains directly to an address. This includes people using IP, IPv6, and Tor. This is by far the most privacy preserving method since the IP address is drawn directly from the blockchain. A user can simply look up a name in the block chain and immediately be linked to a server. However, this privacy comes at the cost of flexibility since the server is directly encoded in the block chain, and can not be changed without an update.
 
 
 %insecure delegation like DNSSEC
 % cite DNS lookup attack
-The much more flexible configuration, used by a large number of people as well, is name server delegation. Rather than directly listing an IP address in the blockchain, one or more name servers are listed. This way a name owner can update its IP address without modifying the blockchain. However this is an insecure delegation since Namecoin can not enforce any security properties regarding the action of the external name server. Additionally if a name server is listed with a hostname rather than and IP address, a standard DNS lookup must occur, linking Namecoin with standard DNS.
+The much more flexible configuration, used by a large number of people as well, is name server delegation. Rather than directly listing an IP address in the blockchain, one or more name servers are listed. This way a name owner can update its IP address without modifying the blockchain. However this is an insecure delegation since Namecoin can not enforce any properties regarding the action of the external name server. The server will have full control over its interaction with users including the ability to track lookups and return non-standard results.
 
 \subsection{Domain content analysis}
 \label{domainbreakdown}
@@ -89,7 +89,7 @@ We finished our analysis with 28 pages remaining. These pages represent the .bit
 
 Our approach to analyzing content suffers from a few limitations. First of all we only queried the main domain over port 80, thus if any of the servers only respond to subdomains or only serve content over HTTPS, they are not included. Additionally when we detect how much content is on each page, we do not follow links and thus content could be hidden behind links. Despite these limitations we believe that we have missed very few legitimate domains.
 
-\subsection{Categorizing Squatter Name Decisions}
+\subsection{Examining Squatter Name Choice}
 
 \begin{figure}[t]
   \centering
@@ -98,11 +98,13 @@ Our approach to analyzing content suffers from a few limitations. First of all w
   \label{fig:alexa_probability}
 \end{figure}
 
-As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and try to interpret the decisions these squatters have made.
+As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and try to interpret the decisions these squatters have made. Here we explore two potential measures of name desirability, one using Alexa ranking, and one using the length of the name.
 
 We can see from Figure \ref{fig:alexa_probability} and Figure \ref{fig:name_length_histogram} that there are patterns to the names that squatters have acquired. In Figure \ref{fig:alexa_probability}, we can see that squatters have claimed the majority of very high ranking Alexa sites.
 
 In Figure \ref{fig:name_length_histogram} we see that there is a preference for shorter names. Table \ref{table:names_available} shows that in fact all one and two character names are taken. It is not until we get to names with at least three characters are there names available to register. Beyond three characters, the combinatorial nature of name strings makes it infeasible to register all names of that length. There are more names with a length of 4 available than there are total names registered currently.
+
+Alexa ranking and name length are an exhaustive description of squatter behavoir. Future work would attempt to better model the valuation that squatters and other namespace participants put on names.
 
 
 \begin{figure}
