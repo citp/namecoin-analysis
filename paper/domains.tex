@@ -1,4 +1,5 @@
 \section{Analysis of .bit domains}
+\label{sec:domains}
 
 In this section we analyze the current state of .bit domains. We explore the system on multiple levels. We begin at the highest level, looking at the repetition of values in order to detect squatters. Next we look at how many .bit domains are set up with query-able values. Finally we actually visit these query-able names and analyze the content we find there.
 
@@ -58,7 +59,7 @@ The much more flexible configuration, used by a large number of people as well, 
 \subsection{Domain Content Analysis}
 \label{domainbreakdown}
 
-\begin{table}[t]
+w\begin{table}[t]
 \begin{tabular}{ll}
 Valid DNS          &  10019  \\
 Curlable        & 5374     \\
@@ -89,18 +90,35 @@ Our approach to analyzing content suffers from a few limitations. First of all w
 
 \subsection{Categorizing Squatter Name Decisions}
 
-As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and try to interpret the decisions these squatters have made. We can see from Figure \ref{fig:alexa_probability} and Figure \ref{fig:name_length_histogram} that there are patterns to the names that squatters have acquired. In Figure \ref{fig:alexa_probability}, we can see that squatters have claimed the majority of very high ranking Alexa sites. 
-
-\begin{figure}
+\begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figures/alexa_probability}
   \caption{The probability that a name that shows up on the Alexa top 1 million rank is registered given by the rank of the name.}
   \label{fig:alexa_probability}
 \end{figure}
 
-\begin{figure}
+As we have seen, many individual squatters buy up very large numbers of domains. We now explore what sort of categories these names fall into and try to interpret the decisions these squatters have made. We can see from Figure \ref{fig:alexa_probability} and Figure \ref{fig:name_length_histogram} that there are patterns to the names that squatters have acquired. In Figure \ref{fig:alexa_probability}, we can see that squatters have claimed the majority of very high ranking Alexa sites.
+
+In Figure \ref{fig:name_length_histogram} we see that there is a preference for shorter names. Table \ref{table:names_available} shows that in fact all one and two character names are taken. It is not until we get to names with at least three characters are there names available to register. Beyond three characters, the combinatorial nature of name strings makes it infeasible to register all names of that length. There are more names with a length of 4 available than there are total names registered currently.
+
+
+\begin{figure}[h]
   \centering
   \includegraphics[width=\columnwidth]{figures/name_length_histogram}
   \caption{The number of Namecoin names registered as a function of name length.}
   \label{fig:name_length_histogram}
 \end{figure}
+
+\begin{table}
+\begin{tabular}{l | c | c }
+Length & Number available & Percent available \\ \hline
+1           & 0                & 0\%  \\
+2           & 0                & 0\% \\
+3           & 14335            & 41.39\% \\
+4           & 1268585          & 99.00\% \\
+5           & 47401012         & 99.97\% \\
+$\vdots$    & $\vdots$         & $\vdots$
+\end{tabular}
+\caption{Availability of names availably by length given in an absolute count, and as a percent of all legal names. All possible names are counted combinatorially using the rules given by \cite{bitdnsspec}.}
+\label{table:names_available}
+\end{table}
