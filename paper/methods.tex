@@ -13,7 +13,7 @@ As part of our ongoing effort to understand how the mechanisms of Namecoin funct
 
 The safest way to buy and sell Namecoin names is through the use of atomic transactions. We show how these transactions work in Figure \ref{fig:atomic}. In an atomic transaction, Alice and Bob make their exchange in a single transaction. In the simplest form of atomic name transfer, Bob creates a transaction which transfers his coins to Alice and transfers `d/example' to him. He then sends this transaction to Alice, the owner of the name, who verifies it, signs, and broadcasts the transaction to the blockchain. Both Alice and Bob's signatures are locked to the inputs and outputs of the transaction so it is impossible to spend either input without the full transaction. This transaction provides total safety to both Alice and Bob since either both the name and coins will be exchanged or nothing will. Although there is nothing inherently different looking about this transaction, there are a few possible techniques to detect them by implementation quirks.
 
-The Namecoin client is a fairly underdeveloped piece of software and thus there is no built-in method of performing atomic transactions. In order to accomplish this task, the Namecoin RPC client must be used from the command line. In order to simplify this task, a Namecoin developer created ANTPY \cite{antyp}, a piece of software to automate the creation of atomic transactions. This software has the quirk that the buyer's payment goes to the address that the seller held the name in. To find these transactions we queried the blockchain for transactions with a NAME\_FIRSTUPDATE or NAME\_UPDATE input from the same address as a non name output. We then further reduced this set by eliminating transactions where the name stayed at the same address.
+The Namecoin client is a fairly underdeveloped piece of software and thus there is no built-in method of performing atomic transactions. In order to accomplish this task, the Namecoin RPC client must be used from the command line. In order to simplify this task, a Namecoin developer created ANTPY \cite{antpy}, a piece of software to automate the creation of atomic transactions. This software has the quirk that the buyer's payment goes to the address that the seller held the name in. To find these transactions we queried the blockchain for transactions with a NAME\_FIRSTUPDATE or NAME\_UPDATE input from the same address as a non name output. We then further reduced this set by eliminating transactions where the name stayed at the same address.
 
 We searched throughout the history of the Namecoin block chain for transactions fitting this specification. Our query returned 13 transactions which we believe represent all transactions built by the ANTPY script. However this by no means represents all sales on the block chain. We next attempt to discover atomic transactions in a different way.
 
@@ -32,9 +32,10 @@ In order to detect non-atomic transactions we must expand our view to the prior 
 \begin{figure}
   \centering
   \includegraphics[width=0.9\columnwidth]{figures/transfers}
-  \caption{Percent of names considered squatted}
+  \caption{Number of Transfers based on squatter threshold}
   \label{fig:percentSquatter}
 \end{figure}
+
 
 Although we have eliminated the possibility of detecting non-atomic name transfers generally, there is an important subclass of these transactions which can still be detected, transfers from squatters to regular users. In the previous section we discussed our detection of squatters in the blockchain which produces a list of values which with a high probability belong to squatters. Detecting transfers from squatters by finding names that change from one of these values gives us an almost working strategy to detect transfers.
 
