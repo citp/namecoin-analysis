@@ -19,7 +19,7 @@ sorting=ynt
 
 
 \addbibresource{ref.bib}
-\title{Bitcoin Transaction Predictions}
+\title{Value of names in a namespace}
 
 
 \author{
@@ -50,7 +50,28 @@ Princeton University\\
 \end{abstract}
 
 \section{Introduction}
-    Namecoin is a 
+    Our research project focuses on trying to predict the value of a given name in the Namecoin DNS namespace. We want to be able to identify which features make different names in this space more valuable than others. In order to motivate this project, we must first give a background on Namecoin. We will then motivate the project, describing the namespace. Like Bitcoin, all transactions that have ever happened in the Namecoin ecosystem are recorded and are publicly available, which is great for data analysis.
+
+\subsection{Background on Namecoin}
+    Namecoin is an alternative cryptocurrency that is closely related to Bitcoin. Namecoin was the first 'altcoin' in the sense that it was the first alternative cryptocurreny to run its own blockchain alongside Bitcoin's. Namecoin is almost identical to Bitcoin except that Namecoin also provides easy tools for using the blockchain as an arbitrary key/value (we will refer to these as name/value) datastore. Because Namecoin is so similar to Bitcoin, it is necessary to briefly mention some of the features of Bitcoin that Namecoin shares. Bitcoin is a decentralized consensus based cryptocurrency. Bitcoin uses an append-only log, called the blockchain, in order to keep track of all the transactions between the users of the system. A user of Bitcoin will own an address that is able to sign transactions authorizing the exchange of coins. In order to add transactions to the blockchain, a user must present the solution to a computationally difficult cryptopuzzle. The users who actively try to solve this puzzle and add transactions to the blockchain are known as Bitcoin miners. Most users are not miners, but the miners will include other user's transactions when they add to the blockhain because users will typically add a small tip to the miners on the transactions. The security of the blockchain is guaranteed by 'proof of work' that someone must present to add to the blockchain. As long as the majority of miners (weighted by computational power) are not malicious, a malicious user will not be able to corrupt the blockchain. Namecoin is merge mined with Bitcoin, so it enjoys a high difficulty from the proof of work challenge because there are many large Bitcoin mining pools that also mine Namecoin in parallel {ref: something on merge mining?}. For a more thorough description of the details of Bitcoin, see {ref satoshi}.
+    
+    Namecoin offers all of the same features as Bitcoin, supporting the same number of coins, the same block creation time, and the same cryptographic puzzle format. The additional feature of Namecoin is that it allows users to store name/value pairs in the blockchain where a user is able to register a particular value to a name. The name is associated with a Namecoin token which can be traded amongst users of the system. Whoever owns the token can change the value associated with the name. One of the first suggested uses of Namecoin was to replace modern DNS. In the new system, a domain would be a name that a user would own on the Namecoin blockchain. The owner can then set the associated value to whatever they need in order to point browsers supporting Namecoin DNS to the correct destination. This name/value store has many uses beyond a new DNS system, but that is beyond the scope of this paper, and our machine learning techniques will only apply to the names used in the DNS system running on Namecoin. We will quickly cover the features in Namecoin that allow for this new functionality and then walk through an example of how it's used. 
+
+    The difference between Bitcoin and Namecoin happens inside the scripting language used to create the transactions. There are several different commands in the scripting language that can be used to make a transaction, but only a subset are accepted by most miners. In Namecoin, a few new commands are added to the scripting language. The new commands don't add any new functionality to the transactions themselves, but they do act as a marker for data that is worked into the transaction script. The data that these signals proceed is the data that is used in the Namecoin protocol. There are three new script operations in Namecoin: NAME\_NEW, NAME\_FIRSTUPDATE, and NAME\_UPDATE. 
+
+\begin{figure}
+\begin{centering}
+\includegraphics[scale=0.8]{registration}
+\par\end{centering}
+\protect\caption{Diagram indicating the transactions and script operations involved in registering a name in the Namecoin system. \label{fig:registration}}
+\end{figure}
+
+    We will now walk through a simple example of a user trying to register a name in the Namecoin system, following what is seen in figure \ref{fig:registration}. Say a user is interested in registering the domain example.bit. The first step is for the user to create a special transaction using the NAME\_NEW script operation. The data that they will push onto the blockchain will be a hash of a concatenation of the name that they want to register (example) and a random nonce. They will then need to wait for a period of at least 12 blocks before they can then create the next special transaction. They will now create a transaction containing the NAME\_FIRSTUPDATE operation, citing the previous NAME\_NEW transaction as input. This transaction requires them to push data that shows the name and random nonce used in the NAME\_NEW transaction and allows them to set the first value associated with example.bit. The reason that the NAME\_NEW transaction is needed at all has to do with preventing front running, where another user hears the transaction claiming a name and tries to claim the name first and then sell it to the original user. Finally, whenever a user wants, they can now create a transaction that utilizes the final script operation, NAME\_UPDATE. When they make a NAME\_UPDATE transaction, they will cite an output of a NAME\_FIRSTUPDATE or NAME\_UPDATE transaction that they made as input and indicate a new value for that transaction to take. If a name on the blockchain has not been in a NAME\_FIRSTUPDATE or NAME\_UPDATE transaction in the past 36,000 blocks, then the name is considered expired and it is available again for any user to claim with a NAME\_NEW transaction. For more details about the specifics on how Namecoin works, see {ref US!!!!}.
+
+\subsection{Motivation and goal}
+
+    A major issue that Namecoin faces is that it is filled with squatters. Any user can claim a name if they are willing to pay the small associated fees (see {ref us}). The number of names is technically infinite, but there is an artificial scarcity of these names because only a finite subset of these names are human memorable. 
+
 
 \section{Methods}
  
