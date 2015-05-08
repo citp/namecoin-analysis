@@ -249,6 +249,12 @@ class NameSession(object):
     def valueOps(self):
         return [op for op in self.ops if op.hasValue()]
 
+    def endHeightOrLatest(self, maxHeight):
+        if maxHeight > self.endHeight:
+            return self.endHeight
+        else:
+            return maxHeight
+
     def valueChangingOps(self):
         prevValue = None
         for op in self.valueOps():
@@ -354,6 +360,8 @@ class NameRecord(object):
             total_blocks += min(session.endHeight, highest_block) - session.startHeight
         return total_blocks / highest_block
 
+    def fractionExpired(self, heighest_block):
+        return (heighest_block - self.sessions[-1].endHeightOrLatest(heighest_block)) / heighest_block
     
     def totalBlocksActive(self):
         totalActive = 0
