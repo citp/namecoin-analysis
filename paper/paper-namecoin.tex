@@ -2,10 +2,10 @@
 %%%
 %%% Set these variables appropriately
 %%%
-\newcommand{\AUTHORS}{\normalsize{Harry Kalodner\textsuperscript{*}, Miles Carlsten\textsuperscript{*}, Paul Ellenbogen\textsuperscript{*}, Joseph Bonneau\(^{\dagger} \), Arvind Narayanan\textsuperscript{*}}\\
-\normalsize{\tt{\{kalodner, carlsten, pe5, arvindn\} @cs.princeton.edu}}\textsuperscript{*}\\
-\normalsize{\tt{jbonneau@gmail.com}}\(^{\dagger} \) \\
-\normalsize{Princeton University}}
+\newcommand{\AUTHORS}{\large{Harry Kalodner\textsuperscript{*}, Miles Carlsten\textsuperscript{*}, Paul Ellenbogen\textsuperscript{*}, Joseph Bonneau\(^{\dagger} \), Arvind Narayanan\textsuperscript{*}}\\
+\small{\textsuperscript{*}\tt{\{kalodner,carlsten,pe5,arvindn\}@cs.princeton.edu}} \ \ \ \ \ \ \ \ \ \ \ 
+\small{\(^{\dagger} \)\tt{jbonneau@gmail.com}}\\
+\large{Princeton University}}
 \newcommand{\TITLE}{An empirical study of Namecoin\\
 and lessons for decentralized namespace design}
 \newcommand{\KEYWORDS}{}
@@ -17,7 +17,7 @@ and lessons for decentralized namespace design}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%% Setup the document/page
-\documentclass[pdftex,twoside,twocolumn,12pt,letterpaper]{article}
+\documentclass[pdftex,twoside,twocolumn,11pt,letterpaper]{article}
 \usepackage{ifthen}
 
 \ifthenelse{\equal{\PAGENUMBERS}{yes}}{%
@@ -29,6 +29,8 @@ and lessons for decentralized namespace design}
 \usepackage[noheadfoot,columnsep=0.2in,
             margin=1in,centering,truedimen]{geometry}
 }
+
+\setlength{\columnsep}{0.25in}
 
 \usepackage[hyphens]{url}
 \usepackage{fancyhdr}
@@ -42,7 +44,7 @@ and lessons for decentralized namespace design}
 \usepackage{textcomp}
 \usepackage{mathptmx}   % Times + Times-like math symbols
 \usepackage{courier}
-\usepackage[scaled=0.92]{helvet}
+\usepackage{helvet}
 \usepackage[explicit]{titlesec}
 
 \usepackage{color}
